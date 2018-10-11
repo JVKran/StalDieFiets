@@ -2,6 +2,7 @@ import webbrowser
 import random
 import sqlite3
 
+# Maakt, leest en schrijft naar een database. Daarnaast wordt er een random barcode met EAN gegenereerd
 
 def register():
     ean = random.randint(1000000000000000, 99999999999999999)
