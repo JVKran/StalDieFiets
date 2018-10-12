@@ -1,8 +1,21 @@
 import webbrowser
 import random
 import sqlite3
+import requests
+import csv
 
 # Maakt, leest en schrijft naar een database. Daarnaast wordt er een random barcode met EAN gegenereerd
+
+def geo():
+    location = 'http://ip-api.com/csv'
+    with requests.Session() as lijst:
+        download = lijst.get(location)
+        decoded_content = download.content.decode('utf-8    ')
+        cr = csv.reader(decoded_content.splitlines(), delimiter=',')
+        my_list = list(cr)
+        for row in my_list:
+            return row[7:9]
+
 
 def register():
     ean = random.randint(1000000000000000, 99999999999999999)
@@ -25,6 +38,7 @@ def register():
     db.commit()
     db.close()
 
+
 def get_information():
     db = sqlite3.connect('data.db')
     cursor = db.cursor()
@@ -37,6 +51,4 @@ def get_information():
             print("Uw naam is {}, uw emailadres is {} en uw wachtwoord is {}.".format(row[0], row[1], row[-1]))
 
 
-
-get_information()
-get_information()
+geo()
