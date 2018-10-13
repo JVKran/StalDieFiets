@@ -4,6 +4,7 @@ import sqlite3
 import requests
 import csv
 
+
 # Maakt, leest en schrijft naar een database. Daarnaast wordt er een random barcode met EAN gegenereerd
 
 def geo():
@@ -51,4 +52,4 @@ def get_information():
             print("Uw naam is {}, uw emailadres is {} en uw wachtwoord is {}.".format(row[0], row[1], row[-1]))
 
 
-geo()
+register()
