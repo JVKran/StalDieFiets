@@ -1,12 +1,14 @@
 import cv2
 import sqlite3
 import random
+from captcha.image import ImageCaptcha
 import csv
 import requests
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 import webbrowser
 import barcode
 from barcode.writer import ImageWriter
+from tkinter import *
 
 
 # Maakt, leest en schrijft naar een database. Daarnaast wordt er een random barcode met EAN gegenereerd
@@ -46,6 +48,62 @@ def register():
     db.commit()
     db.close()
     print("Beste {}, bedankt voor uw registratie bij de fietsentallingen van de NS. We hopen u snel te zien.".format(name))
+
+
+def makencap():     #zorgen dan bij importeren de code niet gelijk runt
+    global waar
+    waar = False
+    cap =""
+    def gen():                  #captcha genereren
+        global cap
+        image = ImageCaptcha()
+        def inhoud():
+            letters =""
+            for i in range(4):
+                wa=random.randrange(65,90)
+                letters+=chr(wa)
+            return letters
+        cap=inhoud()
+
+        data = image.generate('cap')
+        image.write(cap, 'captchaim.png')
+
+    def capt():
+        def click(event=None):
+            global cap
+            global waar
+            antwoord = ant.get()
+            if antwoord == cap:
+                waar = True
+                root.destroy()
+            else:
+                waar = False
+                root.destroy()
+
+        root = Tk()
+
+        antframe = Frame(master=root)
+        antframe.pack(side=BOTTOM)
+
+        photo = PhotoImage(file="captchaim.png")
+        label = Label(master=root, image=photo)
+        ant = Entry(master=antframe)
+        but = Button(master=antframe, text="g", command=click)
+        root.bind('<Return>', click)
+        but.pack(side=RIGHT, pady=10)
+        label.pack()
+        ant.pack(side=LEFT)
+        mainloop()
+        return waar
+
+    while True:
+        if waar == False:
+            gen()
+            capt()
+        else:
+            break
+
+    return waar
 
 
 def get_information():
@@ -125,6 +183,10 @@ while True:
     elif choice == 3:
         log_in_out()
     elif choice == 4:
-        print(alert())3
+        print(alert())
+    elif choice == 5:
+        if makencap():
+            print('werkt')  # returnt True als goed en False als fout
     else:
         exit(0)
+
