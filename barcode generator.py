@@ -18,7 +18,6 @@ def geo():
         decoded_content = download.content.decode('utf-8    ')
         cr = csv.reader(decoded_content.splitlines(), delimiter=',')
         my_list = list(cr)
-        print(my_list)
         for row in my_list:
             return ('{},{}').format(row[7], row[8])
 
@@ -57,6 +56,8 @@ def get_information():
     email = str(input("Uw email-adres: "))
     password = str(input("Uw wachtwoord: "))
     all_rows = cursor.fetchall()
+    db.commit()
+    db.close()
     for row in all_rows:
         if row[1] == email and row[-3] == password:
             return "Uw naam is {}\nUw emailadres is {}\nUw pushover token is {}\nUw barcode is {}".format(row[0], row[1], row[-1], row[-2], row[-1])
@@ -86,7 +87,6 @@ def log_in_out():
     for row in all_rows:
         if row[-1] == ean and row[-3] == password:
             cursor.execute('''DELETE FROM users''')
-
             present = True
             if present is False:
                 cursor.execute('''INSERT INTO users(name, location, pushover, ean)
@@ -96,4 +96,35 @@ def log_in_out():
                 db.close()
 
 
-print(log_in_out())
+def alert():
+    priority = '1'
+    app_token = 'a2b11c66wgm777aavcokfh1dhu9q4o'
+    user_token = 'udy2az1ugrag1t55tkutb46qt7nczr'
+    title = 'Fietsenstalling'
+    message = 'Uw fiets is opgehaald bij de stalling'
+    multipart_data = MultipartEncoder(
+        fields={
+            'attachment': ('ean13_barcode.png', open('ean13_barcode.png', 'rb'), 'image/png'),
+            'token': app_token,
+            'user': user_token,
+            'title': title,
+            'message': message,
+            'priority': priority
+        }
+    )
+    r = requests.post('https://api.pushover.net/1/messages.json', data=multipart_data, headers={'User-Agent': 'Python', 'Content-Type': multipart_data.content_type})
+    return str(r.text)
+
+
+while True:
+    choice = int(input("Wat wilt u doen?\n1:registreren\n2:informatie opvragen\n3:in/uitloggen"))
+    if choice == 1:
+        register()
+    elif choice == 2:
+        get_information()
+    elif choice == 3:
+        log_in_out()
+    elif choice == 4:
+        print(alert())3
+    else:
+        exit(0)
