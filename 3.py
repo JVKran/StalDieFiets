@@ -1,2 +1,3 @@
 import capta
-capta
+
+capta.makencap()

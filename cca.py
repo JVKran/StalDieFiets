@@ -1,3 +1,5 @@
+
+"""
 import random
 from captcha.image import ImageCaptcha
 cap =""
@@ -14,3 +16,4 @@ def gen():
 
     data = image.generate('test')
     image.write(cap, 'out.png')
+"""
