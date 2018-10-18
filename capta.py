@@ -18,8 +18,8 @@ def makencap():     #zorgen dan bij importeren de code niet gelijk runt
             return letters
         cap=inhoud()
 
-        data = image.generate('test')
-        image.write(cap, 'out.png')
+        data = image.generate('cap')
+        image.write(cap, 'captchaim.png')
 
 
 
@@ -33,8 +33,6 @@ def makencap():     #zorgen dan bij importeren de code niet gelijk runt
             global cap
             global waar
             antwoord = ant.get()
-            print(antwoord)
-            print(cap)
             if antwoord==cap:
                 waar=True
                 root.destroy()
@@ -46,7 +44,7 @@ def makencap():     #zorgen dan bij importeren de code niet gelijk runt
         antframe = Frame(master=root)
         antframe.pack(side=BOTTOM)
 
-        photo = PhotoImage(file="out.png")
+        photo = PhotoImage(file="captchaim.png")
         label= Label(master=root, image=photo)
         ant = Entry(master=antframe)
         but = Button(master=antframe, text="g", command=click)
@@ -59,6 +57,6 @@ def makencap():     #zorgen dan bij importeren de code niet gelijk runt
     while True:
         if waar ==False:
             gen()
-            print(capt())
+            capt()
         else:
             break
