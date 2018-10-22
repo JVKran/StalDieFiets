@@ -1,34 +1,22 @@
-from tkinter import *
+from tkinter import Tk, Label, PhotoImage
 root = Tk()
-root.configure(background='white')
 root.resizable(False, False)
+root.configure(background='white')
+
+photo = PhotoImage(file='grad.gif')
+
+grad = Label(master=root,
+             image=photo,
+             width=600,
+             height=300)
+
+text = Label(master=root,
+             font=('Helvetica', 16, 'bold'),
+             foreground='black',
+             background='white',
+             text='lmao')
 
 
-label = Label(master=root,
-              text='Are you a new user or an existing user?',
-              background='#fff517',
-              foreground='black',
-              font=('Arial', 39, 'bold',),
-              width=20,
-              height=5,
-              wraplength=500,
-              justify='left')
-label.pack()
-
-button = Button(master=root,
-                background='#c4c4c4',
-                font=('Arial', 30, 'bold'),
-                width=10,
-                height=1,
-                text='New')
-button.pack(pady=15, side=LEFT, padx=35)
-
-button = Button(master=root,
-                background='#c4c4c4',
-                font=('Arial', 30, 'bold'),
-                width=10,
-                height=1,
-                text='Existing',)
-button.pack(pady=15, anchor='e', padx=35)
-
+text.pack(side='top')
+grad.pack(side='bottom')
 root.mainloop()
