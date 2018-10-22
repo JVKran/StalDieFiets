@@ -1,4 +1,4 @@
-from tkinter import Tk, Label, PhotoImage
+from tkinter import Tk, Label, PhotoImage, Button
 root = Tk()
 root.resizable(False, False)
 root.configure(background='white')
@@ -10,13 +10,23 @@ grad = Label(master=root,
              width=600,
              height=300)
 
-text = Label(master=root,
-             font=('Helvetica', 16, 'bold'),
+grad.pack()
+
+new = Button(master=root,
+             font=('Helvetica', 14),
              foreground='black',
              background='white',
-             text='lmao')
+             width=20,
+             text='New User')
 
+new.pack(side='left', expand=True)
 
-text.pack(side='top')
-grad.pack(side='bottom')
+existing = Button(master=root,
+                  font=('Helvetica', 14),
+                  foreground='black',
+                  background='white',
+                  width=20,
+                  text='Existing User')
+
+existing.pack(side='right', expand=True)
 root.mainloop()
