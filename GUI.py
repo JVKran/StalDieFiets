@@ -7,18 +7,29 @@ def create_window():
                       height=300)
 root = Tk()
 root.title("LIGMA")
-root.geometry("470x300")
 root.resizable(False, False)
 root.configure(background='#ededed')
 
+exp = "Om verder te gaan bij StalDieFiets heb je een account nodig."
 eu = "Log hier in als bestaande gebruiker:"
 nu = "Maak hier een nieuw account aan:"
+
+exp = Label(master=root,
+            font=('Helvetica', 16, 'bold'),
+            text=exp)
+
+exp.grid(row=0, column=0, columnspan=2)
+
+spacing = Label(master=root,
+                background='#ededed')
+
+spacing.grid(row=1, column=0, columnspan=2)
 
 eu = Label(master=root,
             padx=0,
             pady=0,
             width=0,
-            height=10,
+            height=0,
             background='#ededed',
             foreground='black',
             text=eu,
@@ -27,13 +38,13 @@ eu = Label(master=root,
             font=('Helvetica', 16),
             anchor=N)
 
-eu.grid(row=0, column=0)
+eu.grid(row=2, column=0)
 
 nu = Label(master=root,
             padx=0,
             pady=0,
             width=0,
-            height=10,
+            height=0,
             background='#ededed',
             foreground='black',
             text=nu,
@@ -42,8 +53,18 @@ nu = Label(master=root,
             font=('Helvetica', 16),
             anchor=N)
 
-nu.grid(row=0, column=1)
+nu.grid(row=2, column=1)
 
+exiuser = Entry(master=root,
+                width=35)
+
+exiuser.grid(row=3, column=0, sticky='e')
+
+exiusername = Label(master=root,
+                    font=('Helvetica', 12),
+                    text='Username:')
+
+exiusername.grid(row=3, column=0, sticky='w')
 
 new = Button(master=root,
              font=('Helvetica', 14),
@@ -55,7 +76,7 @@ new = Button(master=root,
              text='New User',
              command=create_window)
 
-new.grid(row=1, column=1)
+new.grid(row=4, column=1)
 
 existing = Button(master=root,
                   font=('Helvetica', 14),
@@ -67,5 +88,5 @@ existing = Button(master=root,
                   text='Existing User',
                   command=create_window)
 
-existing.grid(row=1, column=0)
+existing.grid(row=4, column=0)
 root.mainloop()
