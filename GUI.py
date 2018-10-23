@@ -2,51 +2,70 @@ from tkinter import *
 import tkinter as tk
 def create_window():
     login=tk.Toplevel(master=root,
-                        width=500,
-                        background='grey',
-                        height=300)
+                      width=300,
+                      background='#d8d6d2',
+                      height=300)
 root = Tk()
+root.title("LIGMA")
+root.geometry("470x300")
 root.resizable(False, False)
-root.configure(background='grey')
+root.configure(background='#ededed')
 
-explanation = "Als je gebruik wilt maken van StalDieFiets heb je een account nodig:"
+eu = "Log hier in als bestaande gebruiker:"
+nu = "Maak hier een nieuw account aan:"
 
-exp = Label(master=root,
-            padx=9,
-            pady=5,
-            width=35,
+eu = Label(master=root,
+            padx=0,
+            pady=0,
+            width=0,
             height=10,
-            background='grey',
+            background='#ededed',
             foreground='black',
-            text=explanation,
-            wraplength=400,
+            text=eu,
+            wraplength=250,
             justify='left',
-            font=('Helvetica', 16))
+            font=('Helvetica', 16),
+            anchor=N)
 
-exp.pack()
+eu.grid(row=0, column=0)
+
+nu = Label(master=root,
+            padx=0,
+            pady=0,
+            width=0,
+            height=10,
+            background='#ededed',
+            foreground='black',
+            text=nu,
+            wraplength=250,
+            justify='left',
+            font=('Helvetica', 16),
+            anchor=N)
+
+nu.grid(row=0, column=1)
 
 
 new = Button(master=root,
              font=('Helvetica', 14),
              pady=10,
-             padx=10,
+             padx=0,
              foreground='black',
              background='white',
              width=19,
              text='New User',
              command=create_window)
 
-new.pack(side='left')
+new.grid(row=1, column=1)
 
 existing = Button(master=root,
                   font=('Helvetica', 14),
                   pady=10,
-                  padx=10,
+                  padx=0,
                   foreground='black',
                   background='white',
                   width=19,
                   text='Existing User',
                   command=create_window)
 
-existing.pack(side='right')
+existing.grid(row=1, column=0)
 root.mainloop()
