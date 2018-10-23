@@ -17,17 +17,13 @@ nu = "Maak hier een nieuw account aan:"
 exp = Label(master=root,
             font=('Helvetica', 16, 'bold'),
             text=exp)
-
 exp.grid(row=0, column=0, columnspan=2)
 
 spacing = Label(master=root,
                 background='#ededed')
-
 spacing.grid(row=1, column=0, columnspan=2)
 
-eu = Label(master=root,
-            padx=0,
-            pady=0,
+eu = Label(master=root,padx=0,pady=0,
             width=0,
             height=0,
             background='#ededed',
