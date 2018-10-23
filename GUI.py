@@ -1,8 +1,12 @@
 from tkinter import *
+import tkinter as tk
 root = Tk()
 root.resizable(False, False)
 root.configure(background='white')
 root.wm_attributes('-transparentcolor', 'blue')
+
+def create_window():
+    window=tk.Toplevel(root)
 
 photo = PhotoImage(file='grad.gif', width=600, height=300)
 explanation = "Als je gebruik wilt maken van StalDieFiets heb je een account nodig:"
@@ -23,7 +27,8 @@ new = Button(master=root,
              foreground='black',
              background='white',
              width=19,
-             text='New User')
+             text='New User',
+             command=create_window)
 
 new.pack(side='left', expand=True)
 
