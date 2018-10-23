@@ -3,13 +3,12 @@ import tkinter as tk
 def create_window():
     login=tk.Toplevel(master=root,
                         width=500,
-                        background='white',
+                        background='grey',
                         height=300)
 root = Tk()
 root.resizable(False, False)
 root.configure(background='grey')
 
-photo = PhotoImage(file='grad.gif', width=500, height=300)
 explanation = "Als je gebruik wilt maken van StalDieFiets heb je een account nodig:"
 
 exp = Label(master=root,
