@@ -2,46 +2,52 @@ from tkinter import *
 import tkinter as tk
 def create_window():
     login=tk.Toplevel(master=root,
-                       width=500,
-                       height=300,
-                      )
+                        width=500,
+                        background='white',
+                        height=300)
 root = Tk()
 root.resizable(False, False)
-root.configure(background='white')
+root.configure(background='grey')
 
 photo = PhotoImage(file='grad.gif', width=500, height=300)
 explanation = "Als je gebruik wilt maken van StalDieFiets heb je een account nodig:"
 
-
-grad = Label(master=root,
-             image=photo,
-             padx=0,
-             pady=0)
-
-grad.pack()
-
-exp = Label(master=grad,
-             padx=10,
-             text=explanation)
+exp = Label(master=root,
+            padx=9,
+            pady=5,
+            width=35,
+            height=10,
+            background='grey',
+            foreground='black',
+            text=explanation,
+            wraplength=400,
+            justify='left',
+            font=('Helvetica', 16))
 
 exp.pack()
 
+
 new = Button(master=root,
              font=('Helvetica', 14),
+             pady=10,
+             padx=10,
              foreground='black',
              background='white',
              width=19,
              text='New User',
              command=create_window)
 
-new.pack(side='left', expand=True)
+new.pack(side='left')
 
 existing = Button(master=root,
                   font=('Helvetica', 14),
+                  pady=10,
+                  padx=10,
                   foreground='black',
                   background='white',
                   width=19,
-                  text='Existing User')
+                  text='Existing User',
+                  command=create_window)
 
-existing.pack(side='right', expand=True)
+existing.pack(side='right')
 root.mainloop()
