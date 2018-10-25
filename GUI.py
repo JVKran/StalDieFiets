@@ -52,7 +52,7 @@ nu = Label(master=root,
 nu.grid(row=2, column=1)
 
 exiuser = Entry(master=root,
-                width=35)
+                width=25)
 
 exiuser.grid(row=3, column=0, sticky='e')
 
@@ -61,6 +61,61 @@ exiusername = Label(master=root,
                     text='Username:')
 
 exiusername.grid(row=3, column=0, sticky='w')
+
+exipassword = Label(master=root,
+                    font=('Helvetica', 12),
+                    text='Password:')
+
+exipassword.grid(row=4, column=0, sticky='w')
+
+exiuser = Entry(master=root,
+                width=25)
+
+exiuser.grid(row=4, column=0, sticky='e')
+
+newusername = Label(master=root,
+                    font=('Helvetica', 12),
+                    text='Username:')
+
+newusername.grid(row=3, column=1, sticky='w')
+
+newuser = Entry(master=root,
+                width=25)
+
+newuser.grid(row=3, column=1, sticky='e')
+
+newpassword = Label(master=root,
+                    font=('Helvetica', 12),
+                    text='Password:')
+
+newpassword.grid(row=4, column=1, sticky='w')
+
+newpass = Entry(master=root,
+                width=25)
+
+newpass.grid(row=4, column=1, sticky='e')
+
+confirmpassword = Label(master=root,
+                    font=('Helvetica', 12),
+                    text='Confirm password:')
+
+confirmpassword.grid(row=5, column=1, sticky='w')
+
+confirmpass = Entry(master=root,
+                width=25)
+
+confirmpass.grid(row=5, column=1, sticky='e')
+
+phonenumber = Label(master=root,
+                    font=('Helvetica', 12),
+                    text='Username:')
+
+phonenumber.grid(row=6, column=1, sticky='w')
+
+phonenr= Entry(master=root,
+                width=25)
+
+phonenr.grid(row=6, column=1, sticky='e')
 
 new = Button(master=root,
              font=('Helvetica', 14),
@@ -72,7 +127,7 @@ new = Button(master=root,
              text='New User',
              command=create_window)
 
-new.grid(row=4, column=1)
+new.grid(row=10, column=1)
 
 existing = Button(master=root,
                   font=('Helvetica', 14),
@@ -84,5 +139,5 @@ existing = Button(master=root,
                   text='Existing User',
                   command=create_window)
 
-existing.grid(row=4, column=0)
+existing.grid(row=10, column=0)
 root.mainloop()
