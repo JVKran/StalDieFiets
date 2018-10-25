@@ -23,7 +23,7 @@ spacing = Label(master=root,
                 background='#ededed')
 spacing.grid(row=1, column=0, columnspan=2)
 
-eu = Label(master=root,padx=0,pady=0,
+eu = Label(master=root, padx=0, pady=0,
             width=0,
             height=0,
             background='#ededed',
@@ -69,6 +69,7 @@ exipassword = Label(master=root,
 exipassword.grid(row=4, column=0, sticky='w')
 
 exiuser = Entry(master=root,
+                show="*",
                 width=25)
 
 exiuser.grid(row=4, column=0, sticky='e', padx=5)
@@ -91,6 +92,7 @@ newpassword = Label(master=root,
 newpassword.grid(row=4, column=1, sticky='w')
 
 newpass = Entry(master=root,
+                show="*",
                 width=25)
 
 newpass.grid(row=4, column=1, sticky='e', padx=5)
@@ -102,7 +104,8 @@ confirmpassword = Label(master=root,
 confirmpassword.grid(row=5, column=1, sticky='w')
 
 confirmpass = Entry(master=root,
-                width=25)
+                    show="*",
+                    width=25)
 
 confirmpass.grid(row=5, column=1, sticky='e', padx=5)
 
