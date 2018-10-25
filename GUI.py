@@ -16,7 +16,8 @@ nu = "Maak hier een nieuw account aan:"
 
 exp = Label(master=root,
             font=('Helvetica', 16, 'bold'),
-            text=exp)
+            text=exp,
+            bg='#adadad')
 exp.grid(row=0, column=0, columnspan=2)
 
 spacing = Label(master=root,
