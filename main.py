@@ -79,7 +79,7 @@ class klant:
     def wijzig_wachtwoord(self):
         while True:
             old_ww = input('Geef oud wachtwoord:')
-            if old_ww == self.wactwoord:
+            if old_ww == self.wachtwoord:
                 break
             else:
                 print('wachtwoorden komen niet overheen')
@@ -126,7 +126,10 @@ def registreren(plaats):
     std = input("Stad:")
     prvncs = input("Provincie:")
     ml = input("Email:")
-    tn = input("Telefoonnummer:")
+    while True:
+        tn = input("Telefoonnummer:")
+        if tn.isnumeric():
+            break
     while True:
         ww = input("Geef een wachtwoord op: ")
         hhww = input("Herhaal het wachtwoord: ")
@@ -144,7 +147,7 @@ def registreren(plaats):
     naam = plaats + '.db'
     conn = sqlite3.connect(naam)
     c = conn.cursor()
-    c.execute("INSERT INTO klanten VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)", (vn, an, strt, hn, pstcd, std, prvncs, ml, tn, ww, po, ean_number, klant1.get_hash()))
+    c.execute("INSERT INTO klanten VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)", (vn.capitalize(), an.capitalize(), strt.capitalize(), hn, pstcd.upper(), std.capitalize(), prvncs.capitalize(), ml, tn, ww, po, ean_number, klant1.get_hash()))
     conn.commit()
     conn.close()
     print("Beste {}, bedankt voor uw registratie bij de fietsentallingen van de NS. We hopen u snel te zien.".format(vn + " " + an))
@@ -403,38 +406,169 @@ def alert(user_token):
     r = requests.post('https://api.pushover.net/1/messages.json', data=multipart_data, headers={'User-Agent': 'Python', 'Content-Type': multipart_data.content_type})
     return str(r.text)
 
-create_table("utrecht")
-while True:
-    plaats = input("geef uw plaatsnaam op:")
-    import os
-    if os.path.isfile(plaats+".db"):
-        break
-    else:
-        print("no such place exists in our database")
+
+def start():
+    while True:
+        plaats = input("geef uw plaatsnaam op:")
+        import os
+        if os.path.isfile(plaats+".db"):
+            break
+        else:
+            print("no such place exists in our database")
+
+    while True:
+        try:
+            choice = int(input("Wat wilt u doen?\n1:registreren\n2:informatie opvragen\n3:in/uitloggen\n4: Fiets teruggeven\n6: fiets afgeven\nInput: "))
+        except:
+            print('not a numerical input')
+        if choice == 1:
+            registreren(plaats)
+        elif choice == 2:
+            get_information(plaats)
+        elif choice == 3:
+            log_in_out(plaats)
+        elif choice == 4:
+            klant_1 = log_in_out(plaats)
+            if klant is not None:
+                stallingen = get_hash_stallingen(plaats, get_klanten(plaats, "hash"))
+                stalling_vrijgeven(klant_1, stallingen, plaats)
+                #print(alert(klant_1.get_pushover()))
+
+        elif choice == 5:
+            if makencap():
+                print('werkt')  # returnt True als goed en False als fout
+        elif choice == 6:
+            klant1 = log_in_out(plaats)
+            if klant is not None:
+                stallingen = get_stallingen(plaats, get_klanten(plaats, "hash"))
+                stalling_verkrijgen(klant1, stallingen, plaats)
+        else:
+            exit(0)
 
 
-while True:
-    choice = int(input("Wat wilt u doen?\n1:registreren\n2:informatie opvragen\n3:in/uitloggen\n4: Fiets teruggeven\n6: fiets afgeven"))
-    if choice == 1:
-        registreren(plaats)
-    elif choice == 2:
-        get_information(plaats)
-    elif choice == 3:
-        log_in_out(plaats)
-    elif choice == 4:
-        klant_1 = log_in_out(plaats)
-        if klant is not None:
-            stallingen = get_hash_stallingen(plaats, get_klanten(plaats, "hash"))
-            stalling_vrijgeven(klant_1, stallingen, plaats)
-            #print(alert(klant_1.get_pushover()))
 
-    elif choice == 5:
-        if makencap():
-            print('werkt')  # returnt True als goed en False als fout
-    elif choice == 6:
-        klant1 = log_in_out(plaats)
-        if klant is not None:
-            stallingen = get_stallingen(plaats, get_klanten(plaats, "hash"))
-            stalling_verkrijgen(klant1, stallingen, plaats)
-    else:
-        exit(0)
+import tkinter as tk                # python 3
+from tkinter import font  as tkfont # python 3
+#import Tkinter as tk     # python 2
+#import tkFont as tkfont  # python 2
+
+class NsStalling(tk.Tk):
+
+    def __init__(self, *args, **kwargs):
+        tk.Tk.__init__(self, *args, **kwargs)
+
+        self.title_font = tkfont.Font(family='Helvetica', size=40, weight="bold", slant="italic")
+        container = tk.Frame(self)
+        container.pack(side="top", fill="both", expand=True)
+        container.grid_rowconfigure(0, weight=1)
+        container.grid_columnconfigure(0, weight=1)
+
+        self.frames = {}
+        for F in (StartPage, LogIn, Register):
+            page_name = F.__name__
+            frame = F(parent=container, controller=self)
+            self.frames[page_name] = frame
+
+
+            frame.grid(row=0, column=0, sticky="nsew")
+
+        self.show_frame("StartPage")
+
+    def show_frame(self, page_name):
+        '''Show a frame for the given page name'''
+        frame = self.frames[page_name]
+        frame.tkraise()
+
+
+class StartPage(tk.Frame):
+
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.controller = controller
+        label = tk.Label(self, text="This is the start page", font=controller.title_font)
+        label.pack(side="top", fill="x", pady=10)
+
+        button1 = tk.Button(self, text="Log in",
+                            command=lambda: controller.show_frame("LogIn"))
+        button2 = tk.Button(self, text="Register",
+                            command=lambda: controller.show_frame("Register"))
+        button1.pack()
+        button2.pack()
+
+
+
+class LogIn(tk.Frame):
+
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.controller = controller
+        label = tk.Label(self, text="Log in page", font=controller.title_font)
+        label.pack(side="bottom", fill="x", pady=10)
+        label.pack(side="top", fill="x", pady=10)
+
+        Label(self, text="E-mail:", font=('Helvetica', 16, 'bold')).pack()
+        e1 = Entry(self)
+        e1.pack()
+        Label(self, text="Password", font=('Helvetica', 16, 'bold')).pack()
+        e2 = Entry(self)
+        e2.pack()
+
+        button = tk.Button(self, text="Back",
+                           command=lambda: controller.show_frame("StartPage"))
+        button.pack()
+
+
+
+class Register(tk.Frame):
+
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.controller = controller
+        label = tk.Label(self, text="Register", font=controller.title_font)
+        label.pack(side="top", fill="x", pady=10)
+
+        Label(self, text="Voornaam:", font=('Helvetica', 16, 'bold')).pack()
+        e1 = Entry(self)
+        e1.pack()
+        Label(self, text="Achternaam", font=('Helvetica', 16, 'bold')).pack()
+        e2 = Entry(self)
+        e2.pack()
+        Label(self, text="Straat:", font=('Helvetica', 16, 'bold')).pack()
+        e3 = Entry(self)
+        e3.pack()
+        Label(self, text="Huisnummer:", font=('Helvetica', 16, 'bold')).pack()
+        e4 = Entry(self)
+        e4.pack()
+        Label(self, text="Postcode:", font=('Helvetica', 16, 'bold')).pack()
+        e5 = Entry(self)
+        e5.pack()
+        Label(self, text="Stad:", font=('Helvetica', 16, 'bold')).pack()
+        e6 = Entry(self)
+        e6.pack()
+        Label(self, text="Provincie:", font=('Helvetica', 16, 'bold')).pack()
+        e7 = Entry(self)
+        e7.pack()
+        Label(self, text="E-mail:", font=('Helvetica', 16, 'bold')).pack()
+        e8 = Entry(self)
+        e8.pack()
+        Label(self, text="Telefoonnummer:", font=('Helvetica', 16, 'bold')).pack()
+        e9 = Entry(self)
+        e9.pack()
+        Label(self, text="Wachtwoord", font=('Helvetica', 16, 'bold')).pack()
+        e10 = Entry(self)
+        e10.pack()
+        Label(self, text="Herhaal Wachtwoord:", font=('Helvetica', 16, 'bold')).pack()
+        e11 = Entry(self)
+        e11.pack()
+        Label(self, text="Push over token:", font=('Helvetica', 16, 'bold')).pack()
+        e12 = Entry(self)
+        e12.pack()
+
+        button = tk.Button(self, text="Back",
+                           command=lambda: controller.show_frame("StartPage"))
+        button.pack()
+
+
+if __name__ == "__main__":
+    app = NsStalling()
+    app.mainloop()
