@@ -54,7 +54,7 @@ nu.grid(row=2, column=1)
 exiuser = Entry(master=root,
                 width=25)
 
-exiuser.grid(row=3, column=0, sticky='e')
+exiuser.grid(row=3, column=0, sticky='e', padx=5)
 
 exiusername = Label(master=root,
                     font=('Helvetica', 12),
@@ -71,7 +71,7 @@ exipassword.grid(row=4, column=0, sticky='w')
 exiuser = Entry(master=root,
                 width=25)
 
-exiuser.grid(row=4, column=0, sticky='e')
+exiuser.grid(row=4, column=0, sticky='e', padx=5)
 
 newusername = Label(master=root,
                     font=('Helvetica', 12),
@@ -82,7 +82,7 @@ newusername.grid(row=3, column=1, sticky='w')
 newuser = Entry(master=root,
                 width=25)
 
-newuser.grid(row=3, column=1, sticky='e')
+newuser.grid(row=3, column=1, sticky='e', padx=5)
 
 newpassword = Label(master=root,
                     font=('Helvetica', 12),
@@ -93,7 +93,7 @@ newpassword.grid(row=4, column=1, sticky='w')
 newpass = Entry(master=root,
                 width=25)
 
-newpass.grid(row=4, column=1, sticky='e')
+newpass.grid(row=4, column=1, sticky='e', padx=5)
 
 confirmpassword = Label(master=root,
                     font=('Helvetica', 12),
@@ -104,18 +104,18 @@ confirmpassword.grid(row=5, column=1, sticky='w')
 confirmpass = Entry(master=root,
                 width=25)
 
-confirmpass.grid(row=5, column=1, sticky='e')
+confirmpass.grid(row=5, column=1, sticky='e', padx=5)
 
 phonenumber = Label(master=root,
                     font=('Helvetica', 12),
-                    text='Username:')
+                    text='Phone number:')
 
 phonenumber.grid(row=6, column=1, sticky='w')
 
 phonenr= Entry(master=root,
                 width=25)
 
-phonenr.grid(row=6, column=1, sticky='e')
+phonenr.grid(row=6, column=1, sticky='e', padx=5)
 
 new = Button(master=root,
              font=('Helvetica', 14),
