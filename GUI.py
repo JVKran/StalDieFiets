@@ -489,7 +489,7 @@ class StartPage(tk.Frame):
 
         button1 = tk.Button(self, text="Log in", width=20, font=('Helvetica', 20),
                             command=lambda: controller.show_frame("LogIn"))
-        button2 = tk.Button(self, text="Register", width=20, font=('Helvetica', 20),
+        button2 = tk.Button(self, text="Registreer", width=20, font=('Helvetica', 20),
                             command=lambda: controller.show_frame("Register"))
         button1.pack()
         button2.pack()
@@ -517,7 +517,7 @@ class LogIn(tk.Frame):
 
         button1 = tk.Button(self, text="Log In", width=20, font=('Helvetica', 20),
                            command=lambda: controller.show_frame("LoggedIn"))
-        button2 = tk.Button(self, text="Back", width=20, font=('Helvetica', 20),
+        button2 = tk.Button(self, text="Terug", width=20, font=('Helvetica', 20),
                            command=lambda: controller.show_frame("StartPage"))
         button1.pack()
         button2.pack()
@@ -539,7 +539,7 @@ class Register(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
-        label = tk.Label(self, text="Register", font=controller.title_font)
+        label = tk.Label(self, text="Registreer", font=controller.title_font)
         label.pack(side="top", fill="x", pady=10)
 
         Label(self, text="Voornaam:", font=('Helvetica', 16, 'bold')).pack()
