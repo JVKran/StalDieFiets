@@ -256,7 +256,7 @@ def geo():
         cr = csv.reader(decoded_content.splitlines(), delimiter=',')
         my_list = list(cr)
         for row in my_list:
-            return ('{},{}').format(row[7], row[8])
+            return row[5]
 
 
 def makencap():     #zorgen dan bij importeren de code niet gelijk runt
@@ -354,9 +354,11 @@ def log_in_out(plaats, email, password):
                              headers={'Content-Type': multipart_data.content_type})
     data = str(response.text).split(',')
     ean = data[0][20:]
-
-    klanten = get_klanten(plaats, "email")
-    klant = klanten[email]
+    try:
+        klanten = get_klanten(plaats, "email")
+        klant = klanten[email]
+    except KeyError:
+        return None
     #if int(klant.get_ean()) == int(ean.strip('"')[:12]) and klant.get_wachtwoord() == password:
     return klant
     #else:
@@ -427,7 +429,6 @@ def get_steden():
     steden = []
     for row in c.execute('SELECT * FROM Steden ORDER BY plaats'):
         steden.append(row[0])
-        print(row[0])
     conn.commit()
     conn.close()
     return steden
@@ -448,6 +449,18 @@ def update():
     stallingen_hash = get_hash_stallingen(plaats, klanten_hash)
     stallingen = get_stallingen(plaats, klanten_hash)
 
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
 
 class NsStalling(tk.Tk):
 
@@ -461,13 +474,22 @@ class NsStalling(tk.Tk):
         self.frames = {}
         for F in (StartPage, Continue, LogIn, Register, Klant_Page, Choice_City, Create_City, Captcha):
             page_name = F.__name__
-            print(page_name)
             frame = F(parent=cont, controller=self)
             self.frames[page_name] = frame
 
             frame.grid(row=0, column=2, sticky="nsew")
-
-        self.show_frame("Choice_City")
+        global steden
+        global plaats
+        try:
+            if geo() in steden:
+                plaats = geo()
+                update()
+                self.frames[StartPage.__name__].set_info()
+                self.show_frame("StartPage")
+            else:
+                self.show_frame("Choice_City")
+        except:
+            self.show_frame("Choice_City")
 
     def show_frame(self, page_name):
         frame = self.frames[page_name]
@@ -477,29 +499,36 @@ class NsStalling(tk.Tk):
         self.frames[Klant_Page.__name__].set_info()
 
 
-
 class StartPage(tk.Frame):
+    label_plaats= None
 
     def __init__(self, parent, controller):
+        global label_plaats
         tk.Frame.__init__(self, parent)
+        label_plaats = Label(self)
         self.controller = controller
         self.configure(background='grey')
-        label = tk.Label(self, text=""
-                                    "Start pagina", font=controller.title_font)
-        label.grid(row=2, column=2)
 
+        label = tk.Label(self, text="Start pagina", font=controller.title_font)
+        label.grid(row=2, column=2)
         button1 = tk.Button(self, text="Log in", font=('Helvetica', buttonsize),
                             command=lambda: controller.show_frame("LogIn"))
         button2 = tk.Button(self, text="Register", font=('Helvetica', buttonsize),
                             command=lambda: controller.show_frame("Register"))
-        button1.grid(row=5, column=1)
-        button2.grid(row=5, column=3)
+        button1.grid(row=6, column=1)
+        button2.grid(row=6, column=3)
         col_count, row_count = self.grid_size()
         for col in range(0, col_count):
             self.grid_columnconfigure(col, minsize=170)
-        print(row_count)
         for row in range(0, row_count):
             self.grid_rowconfigure(row, minsize=20)
+
+
+    def set_info(self):
+        global plaats
+        global label_plaats
+        label_plaats.configure(text=plaats, font=('Helvetica', 12))
+        label_plaats.grid(row=4, column=2)
 
 
 class Choice_City(tk.Frame):
@@ -512,7 +541,9 @@ class Choice_City(tk.Frame):
         self.configure(background='grey')
         self.controller = controller
         row, colomn = 1, 1
-        div = int(len(steden) / 4)
+        div = len(steden) / 3
+        round(div)
+        int(div)
 
         def choice(stad):
             global plaats
@@ -562,7 +593,7 @@ class Create_City(tk.Frame):
                 update_steden()
                 global plaats
                 plaats = e1.get()
-                controller.show_frame("LogIn")
+                controller.show_frame("StartPage")
 
         label = Label(self, text="Geef naam van stad:", font=('Helvetica', textsize))
         e1 = Entry(self)
@@ -576,9 +607,6 @@ class Create_City(tk.Frame):
 
         for row in range(0, row_count):
             self.grid_rowconfigure(row, minsize=30)
-
-    def update(self):
-        tk.Frame.update()
 
 
 class Continue(tk.Frame):
@@ -620,7 +648,6 @@ class Captcha(tk.Frame):
 
         def click(captcha):
             if ant.get() == captcha:
-                print("captcha succes")
                 plaatje = ImageCaptcha()
                 cap = ""
                 for x in range(4):
@@ -760,7 +787,7 @@ class LogIn(tk.Frame):
         self.configure(background='grey')
         label = tk.Label(self, text="Log in page", font=controller.title_font)
         label.grid(row=0, column=2)
-
+        label_log_in = Label(self, font=('Helvetica', textsize))
         Label(self, text="E-mail:", font=('Helvetica', textsize)).grid(row=1, column=1)
         e1 = Entry(self)
         e1.grid(row=1, column=2)
@@ -772,6 +799,8 @@ class LogIn(tk.Frame):
             global klant_globaal
             klant_globaal = log_in_out(plaats, e1.get(), e2.get())
             if klant_globaal is None:
+                label_log_in.configure(text="Log in mislukt")
+                label_log_in.grid(row=4, column=2)
                 return
             print(klant_globaal.get_voornaam())
             e1.delete(0, 'end')
