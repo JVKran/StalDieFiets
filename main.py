@@ -346,7 +346,7 @@ def log_in_out(plaats, email, password):
     cv2.destroyAllWindows()
     multipart_data = MultipartEncoder(
         fields={
-            'file': ('ean13_barcode.png', open('ean13_barcode.png', 'rb'), 'image/png'),
+            'file': ('barcode.png', open('barcode.png', 'rb'), 'image/png'),
             'apikey': '7b1e1c27-3115-46a3-8720-730497e2f85f'
         }
     )
@@ -359,10 +359,10 @@ def log_in_out(plaats, email, password):
         klant = klanten[email]
     except KeyError:
         return None
-    #if int(klant.get_ean()) == int(ean.strip('"')[:12]) and klant.get_wachtwoord() == password:
-    return klant
-    #else:
-    #   return None
+    if int(klant.get_ean()) == int(ean.strip('"')[:12]) and klant.get_wachtwoord() == password:
+        return klant
+    else:
+        return None
 
 def alert(user_token):
     priority = '1'
@@ -515,8 +515,11 @@ class StartPage(tk.Frame):
                             command=lambda: controller.show_frame("LogIn"))
         button2 = tk.Button(self, text="Register", font=('Helvetica', buttonsize),
                             command=lambda: controller.show_frame("Register"))
-        button1.grid(row=6, column=1)
-        button2.grid(row=6, column=3)
+        button3 = tk.Button(self, text="Andere stad", font=('Helvetica', buttonsize),
+                            command=lambda: controller.show_frame("Choice_City"))
+        button1.grid(row=6, column=2)
+        button2.grid(row=6, column=1)
+        button3.grid(row=6, column=3)
         col_count, row_count = self.grid_size()
         for col in range(0, col_count):
             self.grid_columnconfigure(col, minsize=170)
@@ -574,9 +577,6 @@ class Choice_City(tk.Frame):
         for row in range(0, row_count):
             self.grid_rowconfigure(row, minsize=30)
 
-    def update(self):
-        tk.Frame.update()
-
 
 class Create_City(tk.Frame):
     def __init__(self, parent, controller):
@@ -630,14 +630,14 @@ class Continue(tk.Frame):
         for row in range(0, row_count):
             self.grid_rowconfigure(row, minsize=30)
 
-
+cap = ""
 class Captcha(tk.Frame):
     def __init__(self, parent, controller):
+        global cap
         tk.Frame.__init__(self, parent)
         self.configure(background='grey')
         self.controller = controller
         plaatje = ImageCaptcha()
-        cap = ""
         for i in range(4):
             cap += chr(random.randrange(65, 90))
         plaatje.write(cap, 'captchaim.png')
@@ -646,8 +646,11 @@ class Captcha(tk.Frame):
         label.image = photo
         label.grid(row=1, column=2)
 
-        def click(captcha):
-            if ant.get() == captcha:
+        def click():
+            global cap
+            if ant.get().upper() == cap.upper():
+                print(ant.get().upper())
+                print(cap.upper())
                 plaatje = ImageCaptcha()
                 cap = ""
                 for x in range(4):
@@ -674,8 +677,8 @@ class Captcha(tk.Frame):
                 ant.delete(0, 'end')
 
         ant = Entry(self)
-        but = Button(self, text="Verzend", command=lambda: click(cap))
-        #self.bind('<Return>', click)
+        but = Button(self, text="Verzend", command=lambda: click())
+        self.bind('<Return>', click)
         but.grid(row=3, column=2)
         ant.grid(row=2, column=2)
         col_count, row_count = self.grid_size()
@@ -691,6 +694,7 @@ class Klant_Page(tk.Frame):
     label1 = None
     label2 = None
     label3 = None
+
     def __init__(self, parent, controller):
         global label_stalling
         global label1
