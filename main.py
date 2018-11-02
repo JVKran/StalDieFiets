@@ -338,6 +338,14 @@ def get_information(plaats):
 
 def log_in_out(plaats, email, password):
     # Maakt een foto via de webcam en slaat deze op als barcode.png. minimaal 8 MP dus nep barcode_scan.jpg gebruikt. Levert de barcode in nummers terug #
+    try:
+        klanten = get_klanten(plaats, "email")
+        print(plaats)
+        klant = klanten[email]
+    except KeyError:
+        return None
+    if klant.get_wachtwoord() != password:
+        return None
     camera = cv2.VideoCapture(0)
     return_value, image = camera.read()
     cv2.imwrite('barcode.png', image)
@@ -354,12 +362,7 @@ def log_in_out(plaats, email, password):
                              headers={'Content-Type': multipart_data.content_type})
     data = str(response.text).split(',')
     ean = data[0][20:]
-    try:
-        klanten = get_klanten(plaats, "email")
-        klant = klanten[email]
-    except KeyError:
-        return None
-    if int(klant.get_ean()) == int(ean.strip('"')[:12]) and klant.get_wachtwoord() == password:
+    if int(klant.get_ean()) == int(ean.strip('"')[:12]):
         return klant
     else:
         return
@@ -473,8 +476,14 @@ class NsStalling(tk.Tk):
         x = (ws / 2) - (w / 2)
         y = (hs / 2) - (h / 2)
         self.geometry('%dx%d+%d+%d' % (w, h, x, y))
-        self.configure(background='grey')
+        self.configure(bg='#FFF100')
+        self.resizable(False, False)
         self.title_font = tkfont.Font(family='Helvetica', size=titlesize)
+        label = Label(self)
+        photo = PhotoImage(file="ns.png")
+        label.configure(bg='#FFF100', image=photo)
+        label.image = photo
+        label.grid(row=12, column=0, rowspan=2,columnspan=2)
         cont = tk.Frame(self)
         cont.grid(row=0, column=2)
         self.frames = {}
@@ -511,33 +520,37 @@ class StartPage(tk.Frame):
     def __init__(self, parent, controller):
         global label_plaats
         tk.Frame.__init__(self, parent)
+        self.configure(bg='#FFF100')
         label_plaats = Label(self)
         self.controller = controller
-        self.configure(background='grey')
 
-        label = tk.Label(self, text="Start pagina", font=controller.title_font)
-        label.grid(row=2, column=2)
-        button1 = tk.Button(self, text="Log in", font=('Helvetica', buttonsize),
-                            command=lambda: controller.show_frame("LogIn"))
-        button2 = tk.Button(self, text="Register", font=('Helvetica', buttonsize),
-                            command=lambda: controller.show_frame("Register"))
-        button3 = tk.Button(self, text="Andere stad", font=('Helvetica', buttonsize),
-                            command=lambda: controller.show_frame("Choice_City"))
-        button1.grid(row=6, column=2)
-        button2.grid(row=6, column=1)
-        button3.grid(row=6, column=3)
+        label = tk.Label(self, bg='#FFF100', text="Start pagina", font=controller.title_font)
+        label.grid(row=1, column=1)
+        button1 = tk.Button(self, fg="#ffffff", bg='#4f54ad', text="Log in", font=('Helvetica', buttonsize),
+                            command=lambda: controller.show_frame("LogIn"), relief=GROOVE)
+        button2 = tk.Button(self, fg="#ffffff", bg='#4f54ad', text="Register", font=('Helvetica', buttonsize),
+                            command=lambda: controller.show_frame("Register"), relief=GROOVE)
+        button3 = tk.Button(self, fg="#ffffff", bg='#4f54ad', text="Andere stad", font=('Helvetica', buttonsize),
+                            command=lambda: controller.show_frame("Choice_City"), relief=GROOVE)
+        button1.grid(row=3, column=1)
+        button2.grid(row=3, column=0)
+        button3.grid(row=3, column=2)
         col_count, row_count = self.grid_size()
         for col in range(0, col_count):
-            self.grid_columnconfigure(col, minsize=columnsize)
+            self.grid_columnconfigure(col, minsize=130)
         for row in range(0, row_count):
             self.grid_rowconfigure(row, minsize=rowsize)
-
 
     def set_info(self):
         global plaats
         global label_plaats
-        label_plaats.configure(text=plaats, font=('Helvetica', 12))
-        label_plaats.grid(row=4, column=2)
+        label_plaats.configure(text=plaats, bg='#FFF100', font=('Helvetica', 12))
+        label_plaats.grid(row=2, column=1)
+        col_count, row_count = self.grid_size()
+        for col in range(0, col_count):
+            self.grid_columnconfigure(col, minsize=130)
+        for row in range(0, row_count):
+            self.grid_rowconfigure(row, minsize=rowsize)
 
 
 class Choice_City(tk.Frame):
@@ -545,9 +558,9 @@ class Choice_City(tk.Frame):
     def __init__(self, parent, controller):
         global steden
         tk.Frame.__init__(self, parent)
-        label = tk.Label(self, text="Kies locatie van fietsenstalling", font=controller.title_font)
+        self.configure(bg='#FFF100')
+        label = tk.Label(self, bg='#FFF100', text="Kies locatie van fietsenstalling", font=controller.title_font)
         label.grid(row=0, column=2, columnspan=3)
-        self.configure(background='grey')
         self.controller = controller
         row, column = 1, 1
         div = len(steden) / 3
@@ -556,15 +569,15 @@ class Choice_City(tk.Frame):
 
         def choice(stad):
             global plaats
+            print(plaats)
             plaats = stad
+            print(plaats)
             update()
             controller.show_frame("StartPage")
 
         for stad in steden:
-            button = tk.Button(self, text=stad, font=('Helvetica', buttonsize))
-            button.configure(command=lambda: choice(stad))
+            button = tk.Button(self, fg="#ffffff", bg='#4f54ad', text=stad, font=('Helvetica', buttonsize), command=lambda: choice(stad), relief=GROOVE)
             button.grid(row=row, column=column)
-            print(column)
             row += 1
             if row > div:
                 row = 1
@@ -572,14 +585,17 @@ class Choice_City(tk.Frame):
 
         col_count, row_count = self.grid_size()
 
-        button = tk.Button(self, text="Nieuwe stad", font=('Helvetica', buttonsize))
-        button.configure(command=lambda: controller.show_frame("Create_City"))
-        button.grid(row=row_count, column=col_count)
+        button = tk.Button(self, fg="#ffffff", bg='#4f54ad', text="Nieuwe stad", font=('Helvetica', buttonsize))
+        button.configure(command=lambda: controller.show_frame("Create_City"), relief=GROOVE)
+        button.grid(row=row_count+1, column=col_count-1)
 
         col_count, row_count = self.grid_size()
 
         for col in range(0, col_count):
-            self.grid_columnconfigure(col, minsize=60)
+            if col == 0 or col == 1:
+                self.grid_columnconfigure(col, minsize=10)
+            else:
+                self.grid_columnconfigure(col, minsize=columnsize)
         for row in range(0, row_count):
             self.grid_rowconfigure(row, minsize=rowsize)
 
@@ -587,11 +603,10 @@ class Choice_City(tk.Frame):
 class Create_City(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
-        self.configure(background='grey')
-
         self.controller = controller
-        label = tk.Label(self, text="Stad toevoegen", font=controller.title_font)
-        label.grid(row=0, column=2)
+        self.configure(bg='#FFF100')
+        label = tk.Label(self, bg='#FFF100', text="Stad toevoegen", font=controller.title_font)
+        label.grid(row=0, column=0)
 
         def creeer():
             global steden
@@ -602,12 +617,15 @@ class Create_City(tk.Frame):
                 plaats = e1.get()
                 controller.show_frame("StartPage")
 
-        label = Label(self, text="Geef naam van stad:", font=('Helvetica', textsize))
-        e1 = Entry(self)
-        button = tk.Button(self, text="Maak aan", font=('Helvetica', buttonsize), command=creeer)
-        e1.grid(row=1, column=2, padx=5, pady=5, sticky=W+E+N+S)
-        label.grid(row=1, column=1)
-        button.grid(row=1, column=3)
+        label = Label(self, bg='#FFF100', text="Geef naam van stad:", font=('Helvetica', textsize))
+        e1 = Entry(self, bg='#fff58c')
+        button = tk.Button(self, fg="#ffffff", bg='#4f54ad', text="Maak aan", font=('Helvetica', buttonsize), command=creeer, relief=GROOVE)
+        e1.grid(row=1, column=1, padx=5, pady=5)
+        label.grid(row=1, column=0)
+        button.grid(row=1, column=2)
+        button1 = tk.Button(self, fg="#ffffff", bg='#4f54ad', text="Back", font=('Helvetica', buttonsize),
+                            command=lambda: controller.show_frame("Choice_City"), relief=GROOVE)
+        button1.grid(row=2, column=1)
         col_count, row_count = self.grid_size()
         for col in range(0, col_count):
             self.grid_columnconfigure(col, minsize=columnsize)
@@ -620,12 +638,12 @@ class Continue(tk.Frame):
         tk.Frame.__init__(self, parent)
         self.configure(background='grey')
         self.controller = controller
-        label = tk.Label(self, text=""
+        label = tk.Label(self, bg='#FFF100', text=""
                                     "Gelukt!", font=controller.title_font)
         label.grid(row=0, column=0)
 
-        label = Label(self, text="Registreren is gelukt druk continue om naar start pagina te gaan om in te loggen", font=('Helvetica', textsize))
-        button = tk.Button(self, text="Continue", font=('Helvetica', buttonsize),
+        label = Label(self, bg='#FFF100', text="Registreren is gelukt druk continue om naar start pagina te gaan om in te loggen", font=('Helvetica', textsize))
+        button = tk.Button(self, fg="#ffffff", bg='#4f54ad', text="Continue", font=('Helvetica', buttonsize),
                             command=lambda: controller.show_frame("StartPage"))
         button.grid(row=1, column=1)
         label.grid(row=2, column=2)
@@ -637,8 +655,6 @@ class Continue(tk.Frame):
 
 
 class Captcha(tk.Frame):
-
-
     def __init__(self, parent, controller):
         global cap
         tk.Frame.__init__(self, parent)
@@ -649,7 +665,7 @@ class Captcha(tk.Frame):
             cap += chr(random.randrange(65, 90))
         plaatje.write(cap, 'captchaim.png')
         photo = PhotoImage(file="captchaim.png")
-        label = tk.Label(self, image=photo)
+        label = tk.Label(self, bg='#FFF100', image=photo)
         label.image = photo
         label.grid(row=1, column=2)
 
@@ -681,8 +697,8 @@ class Captcha(tk.Frame):
                 label.image = photo
                 ant.delete(0, 'end')
 
-        ant = Entry(self)
-        but = Button(self, text="Verzend", command=lambda: click())
+        ant = Entry(self, bg='#fff58c')
+        but = Button(self, fg="#ffffff", bg='#4f54ad', text="Verzend", command=lambda: click())
         self.bind('<Return>', click)
         but.grid(row=3, column=2)
         ant.grid(row=2, column=2)
@@ -705,21 +721,21 @@ class Klant_Page(tk.Frame):
         global label2
         global label3
         tk.Frame.__init__(self, parent)
-        label_stalling = tk.Label(self)
-        label1 = tk.Label(self)
-        label2 = tk.Label(self)
-        label3 = tk.Label(self)
-        self.configure(background='grey')
+        label_stalling = tk.Label(self, bg='#FFF100')
+        self.configure(bg='#FFF100')
+        label1 = tk.Label(self, bg='#FFF100')
+        label2 = tk.Label(self, bg='#FFF100')
+        label3 = tk.Label(self, bg='#FFF100')
         self.controller = controller
-        label = tk.Label(self, text="Klanten Page", font=controller.title_font)
-        label.grid(row=1, column=2)
-        label_fiets = tk.Label(self, text="", font=('Helvetica', textsize))
+        label = tk.Label(self, bg='#FFF100', text="Klanten Page", font=controller.title_font)
+        label.grid(row=1, column=1)
+        label_fiets = tk.Label(self, bg='#FFF100', text="", font=('Helvetica', textsize))
         global klant_globaal
         global stallingen_hash
 
         def vrijgeven():
-            label_fiets.configure(text=stalling_vrijgeven(klant_globaal, stallingen_hash, plaats))
-            label_fiets.grid(row=5, column=2)
+            label_fiets.configure(text=stalling_vrijgeven(klant_globaal, stallingen_hash, plaats), bg='#FFF100')
+            label_fiets.grid(row=6, column=1)
             update()
             controller.set_info()
 
@@ -727,11 +743,10 @@ class Klant_Page(tk.Frame):
             global klant_globaal
             global stallingen
             global stallingen_hash
-            label.grid(row=0, column=0)
             try:
                 stallingen_hash[klant_globaal.get_hash()]
                 label_fiets.configure(text="Max 1 stalling per gebruiker")
-                label_fiets.grid(row=5, column=2)
+                label_fiets.grid(row=6, column=1)
             except KeyError:
                 label_fiets.configure(text=stalling_verkrijgen(klant_globaal, stallingen, plaats))
             update()
@@ -740,23 +755,38 @@ class Klant_Page(tk.Frame):
         def log_uit():
             global klant_globaal
             klant_globaal = None
+            global label_stalling
+            global label1
+            global label2
+            global label3
+            label_fiets.forget()
+            label1.forget()
+            label2.forget()
+            label3.forget()
+            label_stalling.forget()
             controller.show_frame("StartPage")
 
-        button1 = tk.Button(self, text="Fiets Vrijgeven", font=('Helvetica', buttonsize),
-                            command=vrijgeven)
-        button2 = tk.Button(self, text="stalling Verkrijgen", font=('Helvetica', buttonsize),
-                            command=verkrijgen)
-        button3 = tk.Button(self, text="Log uit", font=('Helvetica', buttonsize),
-                            command=log_uit)
+        button1 = tk.Button(self, fg="#ffffff", bg='#4f54ad', text="Fiets Vrijgeven", font=('Helvetica', buttonsize),
+                            command=vrijgeven, relief=GROOVE)
+        button2 = tk.Button(self, fg="#ffffff", bg='#4f54ad', text="stalling Verkrijgen", font=('Helvetica', buttonsize),
+                            command=verkrijgen, relief=GROOVE)
+        button3 = tk.Button(self, fg="#ffffff", bg='#4f54ad', text="Log uit", font=('Helvetica', buttonsize),
+                            command=log_uit, relief=GROOVE)
 
-        button1.grid(row=5, column=1)
-        button2.grid(row=5, column=2)
-        button3.grid(row=5, column=3)
+        button1.grid(row=7, column=0)
+        button2.grid(row=7, column=1)
+        button3.grid(row=7, column=2)
         col_count, row_count = self.grid_size()
         for col in range(0, col_count):
-            self.grid_columnconfigure(col, minsize=columnsize)
+            if col == 1:
+                self.grid_columnconfigure(col, minsize=180)
+            else:
+                self.grid_columnconfigure(col, minsize=columnsize)
         for row in range(0, row_count):
-            self.grid_rowconfigure(row, minsize=rowsize)
+            if row == 2 or row == 3 or row == 4 or row == 5:
+                self.grid_rowconfigure(row, minsize=20)
+            else:
+                self.grid_rowconfigure(row, minsize=rowsize)
     def set_info(self):
         global label_stalling
         global label1
@@ -771,137 +801,155 @@ class Klant_Page(tk.Frame):
             label_stalling.configure(
                 text="Fietsen stalling : " + str(stallingen_hash[klant_globaal.get_hash()].get_stallingnummer()))
         except KeyError:
-            label_stalling.configure(text="Fietsen stalling : geen")
+            label_stalling.configure( text="Fietsen stalling : geen")
 
-        label3 = Label(self,
-                       text="Plaats stalling: " + plaats,
+        label3.configure(text="Plaats stalling: " + plaats,
                        font=('Helvetica', textsize))
         label1.forget()
         label2.forget()
         label3.forget()
         label_stalling.forget()
-        label1.grid(row=2, column=2)
-        label2.grid(row=3, column=2)
-        label_stalling.grid(row=3, column=2)
-        label3.grid(row=4, column=2)
+        label1.grid(row=2, column=1)
+        label2.grid(row=3, column=1)
+        label_stalling.grid(row=4, column=1)
+        label3.grid(row=5, column=1)
+        col_count, row_count = self.grid_size()
+        for col in range(0, col_count):
+            if col == 1:
+                self.grid_columnconfigure(col, minsize=180)
+            else:
+                self.grid_columnconfigure(col, minsize=columnsize)
+        for row in range(0, row_count):
+            if row == 2 or row == 3 or row == 4 or row == 5:
+                self.grid_rowconfigure(row, minsize=20)
+            else:
+                self.grid_rowconfigure(row, minsize=rowsize)
+
 
 
 class LogIn(tk.Frame):
+    label_log_in = None
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
+        global label_log_in
+        label_log_in = Label(self)
         self.controller = controller
-        self.configure(background='grey')
-        label = tk.Label(self, text="Log in page", font=controller.title_font)
-        label.grid(row=1, column=2)
-        label_log_in = Label(self, font=('Helvetica', textsize))
-        Label(self, text="E-mail:", font=('Helvetica', textsize)).grid(row=2, column=1, sticky=E, padx="5")
-        e1 = Entry(self, width=30)
-        e1.grid(row=2, column=2)
-        Label(self, text="Password", font=('Helvetica', textsize)).grid(row=3, column=1, sticky=E, padx="5")
-        e2 = Entry(self, show="*", width=30)
-        e2.grid(row=3, column=2)
+        self.configure(bg='#FFF100')
+        label = tk.Label(self, bg='#FFF100', text="Log in page", font=controller.title_font)
+        label.grid(row=1, column=1)
+        label_log_in.config(bg='#FFF100', font=('Helvetica', textsize))
+        Label(self, bg='#FFF100', text="E-mail:", font=('Helvetica', textsize)).grid(row=2, column=0, sticky=E, padx="5")
+        e1 = Entry(self, bg='#fff58c', width=30)
+        e1.grid(row=2, column=1)
+        Label(self, bg='#FFF100', text="Password", font=('Helvetica', textsize)).grid(row=3, column=0, sticky=E, padx="5")
+        e2 = Entry(self, bg='#fff58c', show="*", width=30)
+        e2.grid(row=3, column=1)
 
         def log_in():
             global klant_globaal
             klant_globaal = log_in_out(plaats, e1.get(), e2.get())
             if klant_globaal is None:
                 label_log_in.configure(text="Log in mislukt")
-                label_log_in.grid(row=4, column=2)
+                label_log_in.grid(row=5, column=1)
                 return
-            print(klant_globaal.get_voornaam())
             e1.delete(0, 'end')
             e2.delete(0, 'end')
             controller.set_info()
             controller.show_frame("Klant_Page")
 
         def back():
+            global label_log_in
             e1.delete(0, 'end')
             e2.delete(0, 'end')
+            label_log_in.forget()
             controller.show_frame("StartPage")
 
-        button1 = tk.Button(self, text="Back", font=('Helvetica', buttonsize),
-                            command=back)
-        button2 = tk.Button(self, text="Log in", font=('Helvetica', buttonsize), command=log_in)
+        button1 = tk.Button(self, fg="#ffffff", bg='#4f54ad', text="Back", font=('Helvetica', buttonsize),
+                            command=back, relief=GROOVE)
+        button2 = tk.Button(self, fg="#ffffff", bg='#4f54ad', text="Log in", font=('Helvetica', buttonsize), command=log_in, relief=GROOVE)
 
-        button1.grid(row=4, column=3)
-        button2.grid(row=4, column=2)
+        button1.grid(row=4, column=2)
+        button2.grid(row=4, column=1)
         col_count, row_count = self.grid_size()
         for col in range(0, col_count):
-            self.grid_columnconfigure(col, minsize=columnsize)
+            self.grid_columnconfigure(col, minsize=110)
         for row in range(0, row_count):
-            self.grid_rowconfigure(row, minsize=rowsize)
+            if row == 2 or row == 3:
+                self.grid_rowconfigure(row, minsize=10)
+            else:
+                self.grid_rowconfigure(row, minsize=rowsize)
 
 
 class Register(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
-        self.configure(background='grey')
-        label = tk.Label(self, text="Register", font=controller.title_font)
+        self.configure(bg='#FFF100')
+        label = tk.Label(self, bg='#FFF100', text="Register", font=controller.title_font)
         label.grid(row=1, column=2)
 
-        label_vn = Label(self, text="Voornaam is ongeldig", font=('Helvetica', textsize))
-        label_ong = Label(self, text="alle velden moeten ingevuld worden", font=('Helvetica', textsize))
-        label_an = Label(self, text="achternaam is ongeldig", font=('Helvetica', textsize))
-        label_strt = Label(self, text="Straat is ongeldig", font=('Helvetica', textsize))
-        label_std = Label(self, text="Stad is ongeldig", font=('Helvetica', textsize))
-        label_prvnc = Label(self, text="Provincie is ongeldig", font=('Helvetica', textsize))
-        label_ww = Label(self, text="Wachtwoorden komen niet overeen", font=('Helvetica', textsize))
-        label_ww_tk = Label(self, text="Wachtwoord is tekort", font=('Helvetica', textsize))
-        label_tn = Label(self, text="Telefoonnummer ongeldig", font=('Helvetica', textsize))
-        label_tn_len = Label(self, text="Telefoonnummer ongeldig", font=('Helvetica', textsize))
-        label_pstcd_1 = Label(self, text="postcode is ongeldig", font=('Helvetica', textsize))
-        label_pstcd_2 = Label(self, text="postcode is ongeldig", font=('Helvetica', textsize))
-        label_pstcd_len = Label(self, text="postcode is ongeldige lengte", font=('Helvetica', textsize))
+        label_vn = Label(self, bg='#FFF100', text="Voornaam is ongeldig", font=('Helvetica', textsize))
+        label_ong = Label(self, bg='#FFF100', text="alle velden moeten ingevuld worden", font=('Helvetica', textsize))
+        label_an = Label(self, bg='#FFF100', text="achternaam is ongeldig", font=('Helvetica', textsize))
+        label_strt = Label(self, bg='#FFF100', text="Straat is ongeldig", font=('Helvetica', textsize))
+        label_std = Label(self, bg='#FFF100', text="Stad is ongeldig", font=('Helvetica', textsize))
+        label_prvnc = Label(self, bg='#FFF100', text="Provincie is ongeldig", font=('Helvetica', textsize))
+        label_ww = Label(self, bg='#FFF100', text="Wachtwoorden komen niet overeen", font=('Helvetica', textsize))
+        label_ww_tk = Label(self, bg='#FFF100', text="Wachtwoord is tekort", font=('Helvetica', textsize))
+        label_tn = Label(self, bg='#FFF100', text="Telefoonnummer ongeldig", font=('Helvetica', textsize))
+        label_tn_len = Label(self, bg='#FFF100', text="Telefoonnummer ongeldig", font=('Helvetica', textsize))
+        label_pstcd_1 = Label(self, bg='#FFF100', text="postcode is ongeldig", font=('Helvetica', textsize))
+        label_pstcd_2 = Label(self, bg='#FFF100', text="postcode is ongeldig", font=('Helvetica', textsize))
+        label_pstcd_len = Label(self, bg='#FFF100', text="postcode is ongeldige lengte", font=('Helvetica', textsize))
 
-        Label(self, text="Voornaam:", font=('Helvetica', textsize), anchor='e').grid(row=2, column=1, sticky=E, padx="5")
-        e1 = Entry(self)
+        Label(self, bg='#FFF100', text="Voornaam:", font=('Helvetica', textsize), anchor='e').grid(row=2, column=1, sticky=E, padx="5")
+        e1 = Entry(self, bg='#fff58c')
         e1.config(font=inputsize)
         e1.grid(row=2, column=2)
-        Label(self, text="Achternaam:", font=('Helvetica', textsize), anchor='e').grid(row=3, column=1,
+        Label(self, bg='#FFF100', text="Achternaam:", font=('Helvetica', textsize), anchor='e').grid(row=3, column=1,
          sticky = E, padx = "5")
-        e2 = Entry(self)
+        e2 = Entry(self, bg='#fff58c')
         e2.config(font=inputsize)
         e2.grid(row=3, column=2)
-        Label(self, text="Straat:", font=('Helvetica', textsize), anchor='e').grid(row=4, column=1,
+        Label(self, bg='#FFF100', text="Straat:", font=('Helvetica', textsize), anchor='e').grid(row=4, column=1,
          sticky = E, padx = "5")
-        e3 = Entry(self)
+        e3 = Entry(self, bg='#fff58c')
         e3.config(font=inputsize)
         e3.grid(row=4, column=2)
-        Label(self, text="Huisnummer:", font=('Helvetica', textsize), anchor='e').grid(row=5, column=1, sticky=E, padx="5")
-        e4 = Entry(self)
+        Label(self, bg='#FFF100', text="Huisnummer:", font=('Helvetica', textsize), anchor='e').grid(row=5, column=1, sticky=E, padx="5")
+        e4 = Entry(self, bg='#fff58c')
         e4.config(font=inputsize)
         e4.grid(row=5, column=2)
-        Label(self, text="Postcode:", font=('Helvetica', textsize), anchor='e').grid(row=6, column=1, sticky=E, padx="5")
-        e5 = Entry(self)
+        Label(self, bg='#FFF100', text="Postcode:", font=('Helvetica', textsize), anchor='e').grid(row=6, column=1, sticky=E, padx="5")
+        e5 = Entry(self, bg='#fff58c')
         e5.config(font=inputsize)
         e5.grid(row=6, column=2)
-        Label(self, text="Stad:", font=('Helvetica', textsize), anchor='e').grid(row=7, column=1, sticky=E, padx="5")
-        e6 = Entry(self)
+        Label(self, bg='#FFF100', text="Stad:", font=('Helvetica', textsize), anchor='e').grid(row=7, column=1, sticky=E, padx="5")
+        e6 = Entry(self, bg='#fff58c')
         e6.config(font=inputsize)
         e6.grid(row=7, column=2)
-        Label(self, text="Provincie:", font=('Helvetica', textsize), anchor='e').grid(row=8, column=1, sticky=E, padx="5")
-        e7 = Entry(self)
+        Label(self, bg='#FFF100', text="Provincie:", font=('Helvetica', textsize), anchor='e').grid(row=8, column=1, sticky=E, padx="5")
+        e7 = Entry(self, bg='#fff58c')
         e7.config(font=inputsize)
         e7.grid(row=8, column=2)
-        Label(self, text="E-mail:", font=('Helvetica', textsize), anchor='e').grid(row=9, column=1, sticky=E, padx="5")
-        e8 = Entry(self)
+        Label(self, bg='#FFF100', text="E-mail:", font=('Helvetica', textsize), anchor='e').grid(row=9, column=1, sticky=E, padx="5")
+        e8 = Entry(self, bg='#fff58c')
         e8.config(font=inputsize)
         e8.grid(row=9, column=2)
-        Label(self, text="Telefoonnummer:", font=('Helvetica', textsize), anchor='e').grid(row=10, column=1, sticky=E, padx="5")
-        e9 = Entry(self)
+        Label(self, bg='#FFF100', text="Telefoonnummer:", font=('Helvetica', textsize), anchor='e').grid(row=10, column=1, sticky=E, padx="5")
+        e9 = Entry(self, bg='#fff58c')
         e9.config(font=inputsize)
         e9.grid(row=10, column=2)
-        Label(self, text="Wachtwoord", font=('Helvetica', textsize), anchor='e').grid(row=11, column=1, sticky=E, padx="5")
-        e10 = Entry(self, show="*")
+        Label(self, bg='#FFF100', text="Wachtwoord", font=('Helvetica', textsize), anchor='e').grid(row=11, column=1, sticky=E, padx="5")
+        e10 = Entry(self, bg='#fff58c', show="*")
         e10.config(font=inputsize)
         e10.grid(row=11, column=2)
-        Label(self, text="Herhaal Wachtwoord:", font=('Helvetica', textsize), anchor='e').grid(row=12, column=1, sticky=E, padx="5")
-        e11 = Entry(self, show="*")
+        Label(self, bg='#FFF100', text="Herhaal Wachtwoord:", font=('Helvetica', textsize), anchor='e').grid(row=12, column=1, sticky=E, padx="5")
+        e11 = Entry(self, bg='#fff58c', show="*")
         e11.config(font=inputsize)
         e11.grid(row=12, column=2)
-        Label(self, text="Push over token:", font=('Helvetica', textsize), anchor='e').grid(row=13, column=1, sticky=E, padx="5")
-        e12 = Entry(self)
+        Label(self, bg='#FFF100', text="Push over token:", font=('Helvetica', textsize), anchor='e').grid(row=13, column=1, sticky=E, padx="5")
+        e12 = Entry(self, bg='#fff58c')
         e12.config(font=inputsize)
         e12.grid(row=13, column=2)
 
@@ -1029,15 +1077,19 @@ class Register(tk.Frame):
             e12.delete(0, 'end')
             controller.show_frame("StartPage")
 
-        button = tk.Button(self, text="Back", font=('Helvetica', buttonsize),
-                           command=back)
+        button = tk.Button(self, fg="#ffffff", bg='#4f54ad', text="Back", font=('Helvetica', buttonsize),
+                           command=back, relief=GROOVE)
         button.grid(row=14, column=1)
-        button = tk.Button(self, text="Register", font=('Helvetica', buttonsize),
-                           command=getInfo)
+        button.grid(row=14, column=1)
+        button = tk.Button(self, fg="#ffffff", bg='#4f54ad', text="Register", font=('Helvetica', buttonsize),
+                           command=getInfo, relief=GROOVE)
         button.grid(row=14, column=2)
         col_count, row_count = self.grid_size()
         for col in range(0, col_count):
-            self.grid_columnconfigure(col, minsize=60)
+            if col == 0 or col == 1 or col == 2:
+                self.grid_columnconfigure(col, minsize=0)
+            else:
+                self.grid_columnconfigure(col, minsize=60)
         for row in range(0, row_count):
             self.grid_rowconfigure(row, minsize=30)
 
@@ -1048,6 +1100,7 @@ class testKlantClass(unittest.TestCase):
 
     def setUp(self):
         self.klant = klant('Joey', 'Balk', 'Marckstraat', '37', '4133HT', 'Vianen', 'Utrecht', 'joeybalk@hotmail.com', '0612345678', 'kaaskop','uv2a4p9zzk6bf4d579uxde8agk5zru','012345678912')
+
     def testGetVoornaam(self):
        self.assertEqual(self.klant.get_voornaam(), 'Joey', "Test of de getter van voornaam werkt")
 
