@@ -227,7 +227,6 @@ def get_hash_stallingen(plaats, klanten):
     conn.close()
     return stallingen
 
-
 def create_table(plaats):
     naam = plaats + '.db'
     conn = sqlite3.connect(naam)
@@ -317,25 +316,6 @@ def makencap():     #zorgen dan bij importeren de code niet gelijk runt
     return waar
 
 
-def get_information(plaats):
-
-
-    klanten = get_klanten(plaats, "email")
-    while True:
-        try:
-            email = input("Uw email-adres: ")
-            password = input("Uw wachtwoord: ")
-            klant = klanten[email]
-            break
-
-        except KeyError:
-            print("email is niet bekend bij ons")
-
-    if klant.get_wachtwoord() == password:
-        print("Uw naam is {}\nUw emailadres is {}\nUw pushover token is {}\nUw barcode is {}".format(
-            klant.get_voornaam(), klant.get_email(), klant.get_pushover(), klant.get_ean()))
-
-
 def log_in_out(plaats, email, password):
     # Maakt een foto via de webcam en slaat deze op als barcode.png. minimaal 8 MP dus nep barcode_scan.jpg gebruikt. Levert de barcode in nummers terug #
     try:
@@ -347,6 +327,8 @@ def log_in_out(plaats, email, password):
     if klant.get_wachtwoord() != password:
         return None
     camera = cv2.VideoCapture(0)
+    camera.set(3, 1280)
+    camera.set(4, 720)
     return_value, image = camera.read()
     cv2.imwrite('barcode.png', image)
     camera.release()
@@ -354,7 +336,7 @@ def log_in_out(plaats, email, password):
     cv2.destroyAllWindows()
     multipart_data = MultipartEncoder(
         fields={
-            'file': ('ean13_barcode.png', open('ean13_barcode.png', 'rb'), 'image/png'),
+            'file': ('barcode.png', open('barcode.png', 'rb'), 'image/png'),
             'apikey': '7b1e1c27-3115-46a3-8720-730497e2f85f'
         }
     )
@@ -362,68 +344,44 @@ def log_in_out(plaats, email, password):
                              headers={'Content-Type': multipart_data.content_type})
     data = str(response.text).split(',')
     ean = data[0][20:]
-    if int(klant.get_ean()) == int(ean.strip('"')[:12]):
-        return klant
-    else:
-        return
+    print(klant.get_ean())
+    print(ean)
+    try:
+        if int(klant.get_ean()) == int(ean.strip('"')[:12]):
+            return klant
+        else:
+            return
+    except ValueError:
+        return None
 
-def alert(user_token):
+
+def alert(user_token, message, bool):
     priority = '1'
     app_token = 'a2b11c66wgm777aavcokfh1dhu9q4o'
     title = 'Fietsenstalling'
-    message = 'Uw fiets is opgehaald bij de stalling'
-    multipart_data = MultipartEncoder(
+    if bool:
+        multipart_data = MultipartEncoder(
         fields={
-            'attachment': ('ean13_barcode.png', open('ean13_barcode.png', 'rb'), 'image/png'),
-            'token': app_token,
-            'user': user_token,
-            'title': title,
-            'message': message,
-            'priority': priority
-        }
-    )
+               'attachment': ('barcode.png', open('barcode.png', 'rb'), 'image/png'),
+               'token': app_token,
+               'user': user_token,
+               'title': title,
+               'message': message,
+               'priority': priority
+            }
+     )
+    else:
+        multipart_data = MultipartEncoder(
+            fields={
+                'token': app_token,
+                'user': user_token,
+                'title': title,
+                'message': message,
+                'priority': priority
+            }
+        )
     r = requests.post('https://api.pushover.net/1/messages.json', data=multipart_data, headers={'User-Agent': 'Python', 'Content-Type': multipart_data.content_type})
     return str(r.text)
-
-
-def start():
-    while True:
-        plaats = input("geef uw plaatsnaam op:")
-        import os
-        if os.path.isfile(plaats+".db"):
-            break
-        else:
-            print("no such place exists in our database")
-
-    while True:
-        try:
-            choice = int(input("Wat wilt u doen?\n1:registreren\n2:informatie opvragen\n3:in/uitloggen\n4: Fiets teruggeven\n6: fiets afgeven\nInput: "))
-        except:
-            print('not a numerical input')
-        if choice == 1:
-            registreren(plaats)
-        elif choice == 2:
-            get_information(plaats)
-        elif choice == 3:
-            log_in_out(plaats)
-        elif choice == 4:
-            klant_1 = log_in_out(plaats)
-            if klant is not None:
-                stallingen = get_hash_stallingen(plaats, get_klanten(plaats, "hash"))
-                stalling_vrijgeven(klant_1, stallingen, plaats)
-                #print(alert(klant_1.get_pushover()))
-
-        elif choice == 5:
-            if makencap():
-                print('werkt')  # returnt True als goed en False als fout
-        elif choice == 6:
-            klant1 = log_in_out(plaats)
-            if klant is not None:
-                stallingen = get_stallingen(plaats, get_klanten(plaats, "hash"))
-                stalling_verkrijgen(klant1, stallingen, plaats)
-        else:
-            exit(0)
-
 
 def get_steden():
 
@@ -476,6 +434,7 @@ class NsStalling(tk.Tk):
         x = (ws / 2) - (w / 2)
         y = (hs / 2) - (h / 2)
         self.geometry('%dx%d+%d+%d' % (w, h, x, y))
+        self.title("NS Fietsenstalling")
         self.configure(bg='#FFF100')
         self.resizable(False, False)
         self.title_font = tkfont.Font(family='Helvetica', size=titlesize)
@@ -483,16 +442,16 @@ class NsStalling(tk.Tk):
         photo = PhotoImage(file="ns.png")
         label.configure(bg='#FFF100', image=photo)
         label.image = photo
-        label.grid(row=12, column=0, rowspan=2,columnspan=2)
+        label.grid(row=14, column=0, rowspan=2, columnspan=2)
         cont = tk.Frame(self)
         cont.grid(row=0, column=2)
         self.frames = {}
-        for F in (StartPage, Continue, LogIn, Register, Klant_Page, Choice_City, Create_City, Captcha):
+        for F in (StartPage, LogIn, Register, Klant_Page, Choice_City, Create_City, Captcha):
             page_name = F.__name__
             frame = F(parent=cont, controller=self)
             self.frames[page_name] = frame
+            frame.grid(row=0, column=0, sticky="nsew")
 
-            frame.grid(row=0, column=2, sticky="nsew")
         global steden
         global plaats
         try:
@@ -513,6 +472,12 @@ class NsStalling(tk.Tk):
     def set_info(self):
         self.frames[Klant_Page.__name__].set_info()
 
+    def set_info_stad(self):
+        self.frames[StartPage.__name__].set_info()
+
+    def timer(self):
+        self.after(3000, self.show_frame("StartPage"))
+
 
 class StartPage(tk.Frame):
     label_plaats= None
@@ -523,12 +488,12 @@ class StartPage(tk.Frame):
         self.configure(bg='#FFF100')
         label_plaats = Label(self)
         self.controller = controller
-
+        self.bind("<Key>", lambda: controller.show_frame("LogIn"))
         label = tk.Label(self, bg='#FFF100', text="Start pagina", font=controller.title_font)
         label.grid(row=1, column=1)
         button1 = tk.Button(self, fg="#ffffff", bg='#4f54ad', text="Log in", font=('Helvetica', buttonsize),
                             command=lambda: controller.show_frame("LogIn"), relief=GROOVE)
-        button2 = tk.Button(self, fg="#ffffff", bg='#4f54ad', text="Register", font=('Helvetica', buttonsize),
+        button2 = tk.Button(self, fg="#ffffff", bg='#4f54ad', text="Registreer", font=('Helvetica', buttonsize),
                             command=lambda: controller.show_frame("Register"), relief=GROOVE)
         button3 = tk.Button(self, fg="#ffffff", bg='#4f54ad', text="Andere stad", font=('Helvetica', buttonsize),
                             command=lambda: controller.show_frame("Choice_City"), relief=GROOVE)
@@ -554,7 +519,6 @@ class StartPage(tk.Frame):
 
 
 class Choice_City(tk.Frame):
-
     def __init__(self, parent, controller):
         global steden
         tk.Frame.__init__(self, parent)
@@ -569,14 +533,13 @@ class Choice_City(tk.Frame):
 
         def choice(stad):
             global plaats
-            print(plaats)
             plaats = stad
-            print(plaats)
             update()
+            controller.set_info_stad()
             controller.show_frame("StartPage")
 
         for stad in steden:
-            button = tk.Button(self, fg="#ffffff", bg='#4f54ad', text=stad, font=('Helvetica', buttonsize), command=lambda: choice(stad), relief=GROOVE)
+            button = tk.Button(self, fg="#ffffff", bg='#4f54ad', text=stad, font=('Helvetica', buttonsize), command=lambda stad=stad: choice(stad), relief=GROOVE)
             button.grid(row=row, column=column)
             row += 1
             if row > div:
@@ -615,8 +578,8 @@ class Create_City(tk.Frame):
                 update_steden()
                 global plaats
                 plaats = e1.get()
+                controller.set_info_stad()
                 controller.show_frame("StartPage")
-
         label = Label(self, bg='#FFF100', text="Geef naam van stad:", font=('Helvetica', textsize))
         e1 = Entry(self, bg='#fff58c')
         button = tk.Button(self, fg="#ffffff", bg='#4f54ad', text="Maak aan", font=('Helvetica', buttonsize), command=creeer, relief=GROOVE)
@@ -632,34 +595,12 @@ class Create_City(tk.Frame):
         for row in range(0, row_count):
             self.grid_rowconfigure(row, minsize=rowsize)
 
-
-class Continue(tk.Frame):
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
-        self.configure(background='grey')
-        self.controller = controller
-        label = tk.Label(self, bg='#FFF100', text=""
-                                    "Gelukt!", font=controller.title_font)
-        label.grid(row=0, column=0)
-
-        label = Label(self, bg='#FFF100', text="Registreren is gelukt druk continue om naar start pagina te gaan om in te loggen", font=('Helvetica', textsize))
-        button = tk.Button(self, fg="#ffffff", bg='#4f54ad', text="Continue", font=('Helvetica', buttonsize),
-                            command=lambda: controller.show_frame("StartPage"))
-        button.grid(row=1, column=1)
-        label.grid(row=2, column=2)
-        col_count, row_count = self.grid_size()
-        for col in range(0, col_count):
-            self.grid_columnconfigure(col, minsize=columnsize)
-        for row in range(0, row_count):
-            self.grid_rowconfigure(row, minsize=rowsize)
-
-
 class Captcha(tk.Frame):
     def __init__(self, parent, controller):
         global cap
         tk.Frame.__init__(self, parent)
-        self.configure(background='grey')
         self.controller = controller
+        self.configure(bg='#FFF100')
         plaatje = ImageCaptcha()
         for i in range(4):
             cap += chr(random.randrange(65, 90))
@@ -671,7 +612,9 @@ class Captcha(tk.Frame):
 
         def click():
             global cap
+            global foute_cap
             if ant.get().upper() == cap.upper():
+                foute_cap = 0
                 plaatje = ImageCaptcha()
                 cap = ""
                 for x in range(4):
@@ -684,9 +627,29 @@ class Captcha(tk.Frame):
                 global klant_globaal
                 webbrowser.open("ean13_barcode.png")
                 registreren(klant_globaal)
-                controller.show_frame("Continue")
+                controller.show_frame("StartPage")
+                top = Toplevel()
+                top.title('Gelukt')
+                Message(top, text='''Welkom bij NS stalling.
+                
+                U staat geregistreerd bij deze stalling.
+                
+                U word nu teruggestuurd naar de startpagina.
+                
+                U kunt nu inloggen met uw email en wachtwoord.
+                ''', padx=20, pady=20).pack()
+                top.after(3000, top.destroy)
                 klant_globaal = None
+                alert(klant_globaal.get_po(), "Je bent geregistreerd hierbij je barcode", True)
             else:
+                foute_cap += 1
+                if foute_cap > 4:
+                    controller.show_frame("StartPage")
+                    top = Toplevel()
+                    top.title('Mislukt')
+                    Message(top, text="te vaak fout captcha", padx=20, pady=20).pack()
+                    top.after(3000, top.destroy)
+                    return
                 plaatje = ImageCaptcha()
                 cap = ""
                 for x in range(4):
@@ -727,16 +690,18 @@ class Klant_Page(tk.Frame):
         label2 = tk.Label(self, bg='#FFF100')
         label3 = tk.Label(self, bg='#FFF100')
         self.controller = controller
-        label = tk.Label(self, bg='#FFF100', text="Klanten Page", font=controller.title_font)
+        label = tk.Label(self, bg='#FFF100', text="Klanten pagina", font=controller.title_font)
         label.grid(row=1, column=1)
         label_fiets = tk.Label(self, bg='#FFF100', text="", font=('Helvetica', textsize))
         global klant_globaal
         global stallingen_hash
 
         def vrijgeven():
+            global klant_globaal
             label_fiets.configure(text=stalling_vrijgeven(klant_globaal, stallingen_hash, plaats), bg='#FFF100')
             label_fiets.grid(row=6, column=1)
             update()
+            alert(klant_globaal.get_po(), "Je stalling is vrijgegeven op locatie: "+plaats, False)
             controller.set_info()
 
         def verkrijgen():
@@ -750,6 +715,7 @@ class Klant_Page(tk.Frame):
             except KeyError:
                 label_fiets.configure(text=stalling_verkrijgen(klant_globaal, stallingen, plaats))
             update()
+            alert(klant_globaal.get_po(), "Je hebt een stalling aangevraagd in locatie: ", False)
             controller.set_info()
 
         def log_uit():
@@ -826,9 +792,9 @@ class Klant_Page(tk.Frame):
                 self.grid_rowconfigure(row, minsize=rowsize)
 
 
-
 class LogIn(tk.Frame):
     label_log_in = None
+
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         global label_log_in
@@ -888,19 +854,21 @@ class Register(tk.Frame):
         label = tk.Label(self, bg='#FFF100', text="Register", font=controller.title_font)
         label.grid(row=1, column=2)
 
-        label_vn = Label(self, bg='#FFF100', text="Voornaam is ongeldig", font=('Helvetica', textsize))
-        label_ong = Label(self, bg='#FFF100', text="alle velden moeten ingevuld worden", font=('Helvetica', textsize))
-        label_an = Label(self, bg='#FFF100', text="achternaam is ongeldig", font=('Helvetica', textsize))
-        label_strt = Label(self, bg='#FFF100', text="Straat is ongeldig", font=('Helvetica', textsize))
-        label_std = Label(self, bg='#FFF100', text="Stad is ongeldig", font=('Helvetica', textsize))
-        label_prvnc = Label(self, bg='#FFF100', text="Provincie is ongeldig", font=('Helvetica', textsize))
-        label_ww = Label(self, bg='#FFF100', text="Wachtwoorden komen niet overeen", font=('Helvetica', textsize))
-        label_ww_tk = Label(self, bg='#FFF100', text="Wachtwoord is tekort", font=('Helvetica', textsize))
-        label_tn = Label(self, bg='#FFF100', text="Telefoonnummer ongeldig", font=('Helvetica', textsize))
-        label_tn_len = Label(self, bg='#FFF100', text="Telefoonnummer ongeldig", font=('Helvetica', textsize))
-        label_pstcd_1 = Label(self, bg='#FFF100', text="postcode is ongeldig", font=('Helvetica', textsize))
-        label_pstcd_2 = Label(self, bg='#FFF100', text="postcode is ongeldig", font=('Helvetica', textsize))
-        label_pstcd_len = Label(self, bg='#FFF100', text="postcode is ongeldige lengte", font=('Helvetica', textsize))
+        label_vn = Label(self, bg='#ff0c00', text="Voornaam is ongeldig", font=('Helvetica', textsize))
+        label_ong = Label(self, bg='#ff0c00', text="alle velden moeten ingevuld worden", font=('Helvetica', textsize))
+        label_an = Label(self, bg='#ff0c00', text="achternaam is ongeldig", font=('Helvetica', textsize))
+        label_strt = Label(self, bg='#ff0c00', text="Straat is ongeldig", font=('Helvetica', textsize))
+        label_std = Label(self, bg='#ff0c00', text="Stad is ongeldig", font=('Helvetica', textsize))
+        label_prvnc = Label(self, bg='#ff0c00', text="Provincie is ongeldig", font=('Helvetica', textsize))
+        label_ww = Label(self, bg='#ff0c00', text="Wachtwoorden komen niet overeen", font=('Helvetica', textsize))
+        label_em = Label(self, bg='#ff0c00', text="email bestaat al", font=('Helvetica', textsize))
+        label_em_wr = Label(self, bg='#ff0c00', text="email ongeldig", font=('Helvetica', textsize))
+        label_ww_tk = Label(self, bg='#ff0c00', text="Wachtwoord is tekort", font=('Helvetica', textsize))
+        label_tn = Label(self, bg='#ff0c00', text="Telefoonnummer ongeldig", font=('Helvetica', textsize))
+        label_tn_len = Label(self, bg='#ff0c00', text="Telefoonnummer ongeldig", font=('Helvetica', textsize))
+        label_pstcd_1 = Label(self, bg='#ff0c00', text="postcode is ongeldig", font=('Helvetica', textsize))
+        label_pstcd_2 = Label(self, bg='#ff0c00', text="postcode is ongeldig", font=('Helvetica', textsize))
+        label_pstcd_len = Label(self, bg='#ff0c00', text="postcode is ongeldige lengte", font=('Helvetica', textsize))
 
         Label(self, bg='#FFF100', text="Voornaam:", font=('Helvetica', textsize), anchor='e').grid(row=2, column=1, sticky=E, padx="5")
         e1 = Entry(self, bg='#fff58c')
@@ -954,113 +922,113 @@ class Register(tk.Frame):
         e12.grid(row=13, column=2)
 
         def getInfo():
-            mistakes = 0
-
+            label_em.grid_forget()
+            label_em_wr.grid_forget()
+            label_vn.grid_forget()
+            label_an.grid_forget()
+            label_strt.grid_forget()
+            label_std.grid_forget()
+            label_prvnc.grid_forget()
+            label_ww_tk.grid_forget()
+            label_ww.grid_forget()
+            label_tn.grid_forget()
+            label_tn_len.grid_forget()
+            label_pstcd_1.grid_forget()
+            label_pstcd_2.grid_forget()
+            label_ong.grid_forget()
             if len(e1.get()) < 1 or len(e2.get()) < 1 or len(e3.get()) < 1 or len(e4.get()) < 1 or len(e5.get()) < 1 or\
                     len(e6.get()) < 1 or len(e7.get()) < 1 or len(e8.get()) < 1 or len(e9.get()) < 1 or\
                     len(e10.get()) < 1 or len(e11.get()) < 1 or len(e12.get()) < 1:
-                label_ong.grid(row=22, column=2)
+                label_ong.grid(row=15, column=2, rowspan=2)
                 return
-            else:
-                label_ong.grid_forget()
+            try:
+                klanten_email[e8.get()]
+                label_em.grid(row=15, column=2, rowspan=2)
+                return
+            except KeyError:
+                None
 
+            good = False
+            for char in e8.get():
+                if char == "@":
+                    good = True
+            if not good:
+                label_em_wr.grid(row=15, column=2, rowspan=2)
+                return
             for char in e1.get():
-                if not char.isalpha():
-                    label_vn.grid(row=16, column=2)
-                    mistakes += 1
+                if not char.isalpha() and (char != " " and char != "'" and char != "." and char != "-"):
+                    label_vn.grid(row=15, column=2, rowspan=2)
+                    return
                     break
-                else:
-                    label_vn.grid_forget()
             for word in e2.get().split():
                 for char in word:
-                    if not char.isalpha():
-                        label_an.grid(row=17, column=2)
-                        mistakes += 1
+                    if not char.isalpha() and (char != " " and char != "'" and char != "." and char != "-"):
+                        label_an.grid(row=15, column=2, rowspan=2)
+                        return
                         break
-                    else:
-                        label_an.grid_forget()
             for char in e3.get():
-                if not char.isalpha():
-                    label_strt.grid(row=18, column=2)
-                    mistakes += 1
+                if not char.isalpha() and (char != " " and char != "'" and char != "." and char != "-"):
+                    label_strt.grid(row=15, column=2, rowspan=2)
+                    return
                     break
-                else:
-                    label_strt.grid_forget()
             for char in e6.get():
-                if not char.isalpha():
-                    label_std.grid(row=19, column=2)
-                    mistakes += 1
+                if not char.isalpha() and (char != " " and char != "'" and char != "." and char != "-"):
+                    label_std.grid(row=15, column=2, rowspan=2)
+                    return
                     break
-                else:
-                    label_std.grid_forget()
             for char in e7.get():
-                if not char.isalpha():
-                    label_prvnc.grid(row=20, column=2)
-                    mistakes += 1
+                if not char.isalpha() and (char != " " and char != "'" and char != "." and char != "-"):
+                    label_prvnc.grid(row=15, column=2, rowspan=2)
+                    return
                     break
-                else:
-                    label_prvnc.grid_forget()
             if e10.get() != e11.get():
-                label_ww.grid(row=14, column=2)
-                mistakes += 1
+                label_ww.grid(row=15, column=2, rowspan=2)
+                return
             else:
-                label_ww.grid_forget()
                 if len(e10.get()) < 8:
-                    label_ww_tk.grid(row=14, column=2)
-                    mistakes += 1
-                else:
-                    label_ww_tk.grid_forget()
-
+                    label_ww_tk.grid(row=15, column=2, rowspan=2)
+                    return
             if not e9.get().isnumeric():
-                label_tn.grid(row=15, column=2)
-                mistakes += 1
-            else:
-                label_tn.grid_forget()
+                label_tn.grid(row=15, column=2, rowspan=2)
+                return
             if len(e9.get()) < 10 or len(e9.get()) > 11:
-                label_tn.grid(row=15, column=2)
-                mistakes += 1
-            else:
-                label_tn_len.grid_forget()
+                label_tn.grid(row=15, column=2, rowspan=2)
+                return
             if len(e5.get()) == 6:
-                label_pstcd_len.grid_forget()
                 for char in e5.get()[:4]:
                     if not char.isnumeric():
-                        label_pstcd_1.grid(row=21, column=2)
-                        mistakes += 1
+                        label_pstcd_1.grid(row=15, column=2, rowspan=2)
+                        return
                         break
-                    else:
-                        label_pstcd_1.grid_forget()
                 for char in e5.get()[4:6]:
                     if not char.isalpha():
-                        label_pstcd_2.grid(row=21, column=2)
-                        mistakes += 1
+                        label_pstcd_2.grid(row=15, column=2, rowspan=2)
+                        return
                         break
-                    else:
-                        label_pstcd_2.grid_forget()
             else:
-                label_pstcd_len.grid(row=21, column=2)
-                mistakes += 1
-            if mistakes == 0:
-                global klant_globaal
-                ean_number = str(random.randint(100000000000, 999999999999))
-                EAN = barcode.get_barcode_class('ean13')
-                ean = EAN(ean_number, writer=ImageWriter())
-                ean.save('ean13_barcode')
-                klant_globaal = klant(e1.get(), e2.get(), e3.get(), e4.get(), e5.get(), e6.get(), e7.get(), e8.get(),
+                label_pstcd_len.grid(row=15, column=2, rowspan=2)
+                return
+
+            global klant_globaal
+            ean_number = str(random.randint(100000000000, 999999999999))
+            EAN = barcode.get_barcode_class('ean13')
+            ean = EAN(ean_number, writer=ImageWriter())
+            ean.save('ean13_barcode')
+            klant_globaal = klant(e1.get(), e2.get(), e3.get(), e4.get(), e5.get(), e6.get(), e7.get(), e8.get(),
                                       e9.get(), e10.get(), e12.get(), ean_number)
-                e1.delete(0, 'end')
-                e2.delete(0, 'end')
-                e3.delete(0, 'end')
-                e4.delete(0, 'end')
-                e5.delete(0, 'end')
-                e6.delete(0, 'end')
-                e7.delete(0, 'end')
-                e8.delete(0, 'end')
-                e9.delete(0, 'end')
-                e10.delete(0, 'end')
-                e11.delete(0, 'end')
-                e12.delete(0, 'end')
-                controller.show_frame("Captcha")
+            e1.delete(0, 'end')
+            e2.delete(0, 'end')
+            e3.delete(0, 'end')
+            e4.delete(0, 'end')
+            e5.delete(0, 'end')
+            e6.delete(0, 'end')
+            e7.delete(0, 'end')
+            e8.delete(0, 'end')
+            e9.delete(0, 'end')
+            e10.delete(0, 'end')
+            e11.delete(0, 'end')
+            e12.delete(0, 'end')
+            controller.show_frame("Captcha")
 
         def back():
             e1.delete(0, 'end')
@@ -1081,7 +1049,7 @@ class Register(tk.Frame):
                            command=back, relief=GROOVE)
         button.grid(row=14, column=1)
         button.grid(row=14, column=1)
-        button = tk.Button(self, fg="#ffffff", bg='#4f54ad', text="Register", font=('Helvetica', buttonsize),
+        button = tk.Button(self, fg="#ffffff", bg='#4f54ad', text="Registreer", font=('Helvetica', buttonsize),
                            command=getInfo, relief=GROOVE)
         button.grid(row=14, column=2)
         col_count, row_count = self.grid_size()
@@ -1145,30 +1113,57 @@ class testKlantClass(unittest.TestCase):
     def testGetWW(self):
         self.assertEqual(self.klant.get_wachtwoord(),'kaaskop', "Test of de getter van ww werkt")
 
-    class testStallingClass(unittest.TestCase):
-        def setUp(self):
-            self.stalling = stalling('10')
+class testStallingClass(unittest.TestCase):
 
-            self.stalling.set_klant(klant('Joey', 'Balk', 'Marckstraat', '37', '4133HT', 'Vianen', 'Utrecht', 'joeybalk@hotmail.com', '0612345678', 'kaaskop','uv2a4p9zzk6bf4d579uxde8agk5zru','012345678912'))
+     def setUp(self):
+        self.stalling = stalling('10')
+        self.stalling.set_klant(klant('Joey', 'Balk', 'Marckstraat', '37', '4133HT', 'Vianen', 'Utrecht', 'joeybalk@hotmail.com', '0612345678', 'kaaskop','uv2a4p9zzk6bf4d579uxde8agk5zru','012345678912'))
+
+     def testGetKlant(self):
+        self.assertEqual(self.stalling.get_klant().get_voornaam(), 'Joey', "Test of de getter van klant werkt")
+
+     def testGetstallingnummer(self):
+        self.assertEqual(self.stalling.get_stallingnummer(), '10', "Test of de getter van stallingnummer werkt")
+
+     def testGetVrij(self):
+        self.assertEqual(self.stalling.get_vrij(), False, "Test of de getter van vrij werkt")
+
+     def testSetKlant(self):
+        self.stalling.set_klant(klant('Sil', 'Rijnberk', 'Marckstraat', '37', '4133HT', 'Vianen', 'Utrecht', 'joeybalk@hotmail.com', '0612345678', 'kaaskop','uv2a4p9zzk6bf4d579uxde8agk5zru','012345678912'))
+        self.assertEqual(self.stalling.get_klant().get_voornaam(),'Sil', "Test of de setter van klant werkt")
+
+     def testVrijStalling(self):
+        self.stalling.vrij_stalling()
+        self.assertEqual(self.stalling.get_vrij(), True, "Test of er een vrije stalling is")
+
+class testStallingClass(unittest.TestCase):
+
+    def setUp(self):
+        global plaats
+        plaats = "test"
+        self.klanten = get_klanten("test", "hash")
+        self.stallingen = get_stallingen("test", self.klanten)
+        self.hash_stallingen = get_hash_stallingen("test", self.klanten)
+        #print(stalling_vrijgeven(self.klanten[478594418], self.hash_stallingen, "test"))
 
 
-        def testGetKlant(self):
-            self.assertEqual(self.stalling.get_klant().get_voornaam(), 'Joey', "Test of de getter van klant werkt")
+    def testGetKlanten(self):
+        klant = self.klanten[478594418]
+        self.assertEqual(klant.get_voornaam(), "Joey", "text of get klanten klant geeft")
 
-        def testGetstallingnummer(self):
-            self.assertEqual(self.stalling.get_stallingnummer(), '10', "Test of de getter van stallingnummer werkt")
+    def testGetStalingen(self):
+        self.assertRaises(KeyError, lambda: self.hash_stallingen[478594418])
 
-        def testGetVrij(self):
-            self.assertEqual(self.stalling.get_vrij(), False, "Test of de getter van vrij werkt")
+    def testStallingverkrijgen(self):
+        stalling_verkrijgen(self.klanten[478594418], self.stallingen, "test")
+        self.hash_stallingen = get_hash_stallingen("test", self.klanten)
+        self.assertEqual(self.hash_stallingen[478594418].get_vrij(), False, " test of stalling word verkregen")
 
-        def testSetKlant(self):
-            self.stalling.set_klant(klant('Sil', 'Rijnberk', 'Marckstraat', '37', '4133HT', 'Vianen', 'Utrecht', 'joeybalk@hotmail.com', '0612345678', 'kaaskop','uv2a4p9zzk6bf4d579uxde8agk5zru','012345678912'))
-            self.assertEqual(self.stalling.get_klant().get_voornaam(),'Sil', "Test of de setter van klant werkt")
-
-        def testVrijStalling(self):
-            self.stalling.vrij_stalling()
-            self.assertEqual(self.stalling.get_vrij(), True, "Test of er een vrije stalling is")
-
+    def testStallingvrijgeven(self):
+        self.hash_stallingen = get_hash_stallingen("test", self.klanten)
+        stalling_vrijgeven(self.klanten[478594418], self.hash_stallingen, "test")
+        self.hash_stallingen = get_hash_stallingen("test", self.klanten)
+        self.assertRaises(KeyError, lambda: self.hash_stallingen[478594418])
 
 if __name__ == "__main__":
     buttonsize = 10
@@ -1179,6 +1174,7 @@ if __name__ == "__main__":
     rowsize = 60
     plaats = ''
     cap = ""
+    foute_cap = 0
     klant_globaal = None
     klanten_hash = {}
     klanten_email = {}
@@ -1191,4 +1187,5 @@ if __name__ == "__main__":
     app.mainloop()
     #elif inp == "test":
     #unittest.main()
+
 
