@@ -15,8 +15,28 @@ from tkinter import font as tkfont
 
 
 class klant:
-
+    '''
+     class for klanten object
+    '''
     def __init__(self, vn, an, strt, hn, pstcd, std, prvnc, ml, tn, ww, po, ean):
+        '''
+
+        method to create a klant object
+
+        Args:
+            vn (str): voornaam klant
+            an (str): achternaam  klant
+            strt (str): straat klant
+            hn (str): huisnummer klant
+            pstcd (str): postcode klant
+            std (str): stad klant
+            prvnc (str): provincie klant
+            ml (str) email van klant
+            tn (str): telefoonnumer klant
+            ww (str): wachtwoord van klant
+            po (str): push over token van klant
+            ean (int): barcode klant
+        '''
         self.voornaam = vn
         self.achternaam = an
         self.straat = strt
@@ -32,39 +52,94 @@ class klant:
         self.hash = hash(vn+an+ml+tn)
 
     def get_voornaam(self):
+        '''
+        getter voor voornaam
+        :return: voornaam
+        '''
         return self.voornaam
 
     def get_achternaam(self):
+        '''
+        getter voor achternaam
+        :return: achternaam
+        '''
         return self.achternaam
 
     def get_adres(self):
+        '''
+        getter voor adress in de vorm straat:huisnummer:postcode:stad
+        :return: straat:huisnummer:postcode:stad
+        '''
         return self.straat+':'+self.huisnummer+':'+self.postcode+':'+self.stad
 
     def get_provincie(self):
+        '''
+        getter voor provincie
+        :return: provincie
+        '''
         return self.provincie
 
     def get_telefoonnummer(self):
+        '''
+        getter voor telefoonnummer
+        :return: telefoonnummer
+        '''
         return self.telefoonnummer
 
     def get_email(self):
+        '''
+        getter voor email
+        :return: email
+        '''
         return self.email
 
     def get_hash(self):
+        '''
+        getter voor hash
+        :return: hash
+        '''
         return self.hash
 
     def get_pushover(self):
+        '''
+        getter voor pushover
+        :return: pushover
+        '''
         return self.pusho
 
     def get_ean(self):
+        '''
+        getter voor hash
+        :return: hash
+        '''
         return self.ean
 
     def set_voornaam(self, new_vn):
+        '''
+        setter voor voornaam
+        :param new_vn: nieuwe voornaam
+        :return: None
+        '''
         self.voornaam = new_vn
 
     def set_achternaam(self, new_an):
+        '''
+        setter voor achternaam
+        :param new_an: nieuwe achternaam
+        :return: None
+        '''
         self.achternaam = new_an
 
     def set_Adres(self,  new_strt, new_hn, new_pstcd, new_std, new_prvnc):
+        '''
+        setter voor adres
+        :param new_strt: nieuwe straat
+        :param new_hn: nieuwe huisnummer
+        :param new_pstcd: nieuw postcode
+        :param new_std: nieuwe stad
+        :param new_prvnc: nieuwe provincie
+        :return: None
+        '''
         self.straat = new_strt
         self.huisnummer = new_hn
         self.postcode = new_pstcd
@@ -72,60 +147,97 @@ class klant:
         self.provincie = new_prvnc
 
     def set_email(self, new_ml):
+        '''
+        setter voor email
+        :param new_ml: nieuwe email
+        :return: None
+        '''
         self.email = new_ml
 
     def set_telefoonnummer(self, new_tn):
+        '''
+        setter voor telefoonnummer
+        :param new_tn: nieuw telefoon nummer
+        :return: None
+        '''
         self.telefoonnummer = new_tn
 
     def set_hash(self, hash1):
+        '''
+        setter voor hash_code
+        :param hash1: nieuwe hash code
+        :return: None
+        '''
         self.hash = hash1
 
     def get_wachtwoord(self):
+        '''
+        getter voor wachtwoord
+        :return: wachtwoord
+        '''
         return self.wachtwoord
-
-    def wijzig_wachtwoord(self):
-        while True:
-            old_ww = input('Geef oud wachtwoord:')
-            if old_ww == self.wachtwoord:
-                break
-            else:
-                print('wachtwoorden komen niet overheen')
-        while True:
-            new_ww = input("Wachtwoord:")
-            hhww = input("Herhaal wachtwoord:")
-            if new_ww == hhww:
-                break
-            else:
-                print('Wachtwoorden komen niet overheen')
-        self.wachtwoord = new_ww
 
 
 class stalling:
-
+    '''
+    class voor een stalling met stalling nummer of stalling vrij is en de klant
+    '''
     def __init__(self, stnm):
+        '''
+        initialize stalling met meegegeven stallingnnummer
+        vrij word true gezet
+        klant word none gemaakt
+        :param stnm:
+        '''
         self.stalingnnumer = stnm
         self.vrij = True
         self.klant = None
 
     def get_klant(self):
+        '''
+        getter voor klant behoorend bij deze stalling
+        :return: klant object
+        '''
         return self.klant
 
     def get_stallingnummer(self):
+        '''
+        getter voor stallingnummer
+        :return: stallingnummer
+        '''
         return self.stalingnnumer
 
     def get_vrij(self):
+        '''
+        getter voor vrij geeft aan of stalling vrij is of niet in de vorm van een boolean
+        :return: boolean
+        '''
         return self.vrij
 
     def set_klant(self, klant):
+        '''
+        setter voor klant maakt stalling gelijk niet meer vrij
+        :param klant: klant object
+        :return: None
+        '''
         self.klant = klant
         self.vrij = False
 
     def vrij_stalling(self):
+        '''
+        maakt stalling vrij en zet klant weer None
+        :return: None
+        '''
         self.klant = None
         self.vrij = True
 
 
 def registreren(nieuwe_klant):
+    '''
+    registreren word gebruikt om een klant in de database op te slaan
+    :param nieuwe_klant:
+    :return: klant object
+    '''
     naam = plaats + '.db'
     conn = sqlite3.connect(naam)
     c = conn.cursor()
@@ -142,6 +254,15 @@ def registreren(nieuwe_klant):
 
 
 def stalling_verkrijgen(klant1, stallingen, plaats):
+    '''
+    hiermee word een stalling verkregen voor de gegeven klant en plaats
+    en checkt welke stallingen vrij zijn en geeft de eerste die vrij is
+    aan klant
+    :param klant1: klant object
+    :param stallingen: stalling list
+    :param plaats: string van plaats
+    :return:
+    '''
     for stl in stallingen:
         print(stl.get_klant())
         if stl.vrij:
@@ -161,6 +282,14 @@ def stalling_verkrijgen(klant1, stallingen, plaats):
 
 
 def stalling_vrijgeven(klant1, stallingen, plaats):
+    '''
+    hiermee word een stalling vrijgegeven voor de gegeven klant en plaats
+    en maakt de stalling weer vrij
+    :param klant1: klant object
+    :param stallingen: stalling list
+    :param plaats: string van plaats
+    :return:
+    '''
     print(klant1.get_hash())
     try:
         stalling1 = stallingen[klant1.get_hash()]
@@ -179,6 +308,12 @@ def stalling_vrijgeven(klant1, stallingen, plaats):
 
 
 def get_klanten(plaats,  sortby):
+    '''
+    returnt de klanten met een dict met hash als key of email als key
+    :param plaats: string plaats
+    :param sortby: string sorteer op hash of email
+    :return: dict klanten
+    '''
     naam = plaats + '.db'
     conn = sqlite3.connect(naam)
     c = conn.cursor()
@@ -198,6 +333,12 @@ def get_klanten(plaats,  sortby):
 
 
 def get_stallingen(plaats, klanten):
+    '''
+    returnt stallingen als list van stalling object
+    :param plaats: string plaats
+    :param klanten: dict van klanten
+    :return: list stallingen
+    '''
     naam = plaats + '.db'
     conn = sqlite3.connect(naam)
     c = conn.cursor()
@@ -213,6 +354,12 @@ def get_stallingen(plaats, klanten):
     return stallingen
 
 def get_hash_stallingen(plaats, klanten):
+    '''
+    returnt stallingen als dict van stallingen met als keys klant hash
+    :param plaats: string plaats
+    :param klanten: dict van klanten
+    :return: dict stallingen
+    '''
     naam = plaats + '.db'
     conn = sqlite3.connect(naam)
     c = conn.cursor()
@@ -228,6 +375,11 @@ def get_hash_stallingen(plaats, klanten):
     return stallingen
 
 def create_table(plaats):
+    '''
+    creeerd een database voor een nieuwe stad met klanten en stallingen
+    :param plaats: naam van de plaats die gecreeerd moet worden
+    :return: None
+    '''
     naam = plaats + '.db'
     conn = sqlite3.connect(naam)
     c = conn.cursor()
@@ -248,6 +400,10 @@ def create_table(plaats):
 
 
 def geo():
+    '''
+    funtie om locatie op te vragen
+    :return: string locatie (stad)
+    '''
     location = 'http://ip-api.com/csv'
     with requests.Session() as lijst:
         download = lijst.get(location)
@@ -258,65 +414,15 @@ def geo():
             return row[5]
 
 
-def makencap():     #zorgen dan bij importeren de code niet gelijk runt
-    global waar
-    waar = False
-    cap =""
-
-    def gen():                  #captcha genereren
-        global cap
-        image = ImageCaptcha()
-
-        def inhoud():
-            letters =""
-            for i in range(4):
-                wa = random.randrange(65, 90)
-                letters += chr(wa)
-            return letters
-        cap = inhoud()
-
-        data = image.generate('cap')
-        image.write(cap, 'captchaim.png')
-
-    def capt():
-        def click(event=None):
-            global cap
-            global waar
-            antwoord = ant.get()
-            if antwoord == cap:
-                waar = True
-                root.destroy()
-            else:
-                waar = False
-                root.destroy()
-
-        root = Tk()
-
-        antframe = Frame(master=root)
-        antframe.pack(side=BOTTOM)
-
-        photo = PhotoImage(file="captchaim.png")
-        label = Label(master=root, image=photo)
-        ant = Entry(master=antframe)
-        but = Button(master=antframe, text="g", command=click)
-        root.bind('<Return>', click)
-        but.pack(side=RIGHT, pady=10)
-        label.pack()
-        ant.pack(side=LEFT)
-        mainloop()
-        return waar
-
-    while True:
-        if not waar:
-            gen()
-            capt()
-        else:
-            break
-
-    return waar
-
-
 def log_in_out(plaats, email, password):
+    '''
+    log in met gegeven email en wachtwoord voor een plaats hij kijkt of je in database
+    staat en dan of wachtwoord klopt en dan of de barcode werkt zo niet return None zoja return klant
+    :param plaats: string plaats
+    :param email: string email
+    :param password: string wachtwoord
+    :return: klant object of None als login mislukt
+    '''
     # Maakt een foto via de webcam en slaat deze op als barcode.png. minimaal 8 MP dus nep barcode_scan.jpg gebruikt. Levert de barcode in nummers terug #
     try:
         klanten = get_klanten(plaats, "email")
@@ -356,6 +462,13 @@ def log_in_out(plaats, email, password):
 
 
 def alert(user_token, message, bool):
+    '''
+    functie om push over te sturen met barcode of zonder ligt aan bool
+    :param user_token: user token
+    :param message: string message
+    :param bool: boolean
+    :return:
+    '''
     priority = '1'
     app_token = 'a2b11c66wgm777aavcokfh1dhu9q4o'
     title = 'Fietsenstalling'
@@ -384,7 +497,10 @@ def alert(user_token, message, bool):
     return str(r.text)
 
 def get_steden():
-
+    '''
+    get steden uit database
+    :return: database
+    '''
     conn = sqlite3.connect("Steden.db")
     c = conn.cursor()
     steden = []
@@ -396,11 +512,19 @@ def get_steden():
 
 
 def update_steden():
+    '''
+    update steden
+    :return: None
+    '''
     global steden
     steden = get_steden()
 
 
 def update():
+    '''
+    update alle global variable
+    :return: None
+    '''
     global klanten_hash
     global klanten_email
     global stallingen
@@ -815,7 +939,7 @@ class LogIn(tk.Frame):
             global klant_globaal
             klant_globaal = log_in_out(plaats, e1.get(), e2.get())
             if klant_globaal is None:
-                label_log_in.configure(text="Log in mislukt")
+                label_log_in.configure(text="Log in mislukt",bg= "#ff0c00")
                 label_log_in.grid(row=5, column=1)
                 return
             e1.delete(0, 'end')
