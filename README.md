@@ -12,6 +12,7 @@ Daarna moeten de benodigde modules geïmporteerd. Deze modules omvatten:
 - requests-toolbelt
 - webbrowser
 - python-barcode
+
 Vervolgens kan het bestand main.py worden uitgevoerd. Let er wel op dat niet de unittests maar het programma zelf wordt
 uitgevoerd. Indien er foutmeldingen volgen of er bepaalde functionaliteiten ontbreken of niet naar behoren werken 
 horen de volgende modules ook geïnstalleerd worden:
